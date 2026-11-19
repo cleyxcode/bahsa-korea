@@ -231,7 +231,7 @@ function test(){
  const pool=sh(all.filter(x=>x[1]!=q[1]&&x[0]!=q[0]));
  const wrong=[],seen=new Set();
  for(const x of pool){const key=dir?x[0]:x[1];if(!seen.has(key)){seen.add(key);wrong.push(x);}if(wrong.length==3)break}
- const opts=sh([q,...wrong]);if(!dir)setTimeout(()=>say(q[0]),200);
+ const opts=sh([q,...wrong]);
  a.innerHTML=`<div class="bar"><i style="width:${qi/Q.length*100}%"></i></div><div class="q"><div class="note">Soal ${qi+1} dari ${Q.length} · Skor ${score}</div>${dir==2?`<img class="qi" src="${IMG[q[0]]}" alt=""><div class="note">Pilih kata Korea yang cocok dengan gambar</div>`:dir?`<div class="big" style="font-size:3rem">${q[1]}</div><div class="note">Pilih huruf yang benar</div>`:`<div class="big" style="${(mode=="w"||mode=="p")?"font-size:2.6rem":""}">${q[0]}</div><div class="note">Bagaimana cara membacanya?</div><button class="hint" data-s="${q[0]}">[[sound]] Dengar lagi</button>`}<div class="opts">${opts.map(o=>`<button data-a="${o[0]}">${dir?o[0]:o[1]}</button>`).join("")}</div><div class="tip" id="tip"><button class="hint" id="hint">[[bulb]] Petunjuk</button></div></div>`;
 }
 document.addEventListener("click",e=>{
@@ -248,14 +248,14 @@ document.addEventListener("click",e=>{
  if(t.dataset.t){tab=t.dataset.t;route();return}
  if(t.dataset.s){say(t.dataset.s);return}
  if(t.dataset.d){dir=+t.dataset.d;test();return}
- if(t.id=="go"||t.id=="again"){start();return}if(t.id=="weak"){start(1);return}if(t.id=="tv"){say("ㅏ");return}if(t.dataset.sa!==undefined){sAns(t.dataset.sa);return}if(t.id=="sgo"){sStart();return}if(t.id=="sn"){SM.i++;sShow();return}if(t.id=="si"){SM.q[SM.i].sh=1;sQ();return}if(t.id=="sc"){const i=$("ti");if(i&&!i.disabled)sAns(i.value);return}if(t.id=="smh"){smartHome();return}if(t.id=="shint"){$("stip").innerHTML="[[bulb]] "+SM.q[SM.i].x[2];return}if(t.id=="all"){items().forEach((x,i)=>setTimeout(()=>say(x[0]),i*1300));return}if(t.id=="hint"){$("tip").innerHTML="[[bulb]] "+Q[qi][2];return}if(t.dataset.f){const f=t.dataset.f;if(f=="flip"){fl=true;say(F[0][0])}else if(f=="yes"){F.shift();fl=false}else if(f=="no"){F.push(F.shift());fl=false}else{F=null;fl=false}card();return}
+ if(t.id=="go"||t.id=="again"){start();return}if(t.id=="weak"){start(1);return}if(t.id=="tv"){say("ㅏ");return}if(t.dataset.sa!==undefined){sAns(t.dataset.sa);return}if(t.id=="sgo"){sStart();return}if(t.id=="sn"){SM.i++;sShow();return}if(t.id=="si"){SM.q[SM.i].sh=1;sQ();return}if(t.id=="sc"){const i=$("ti");if(i&&!i.disabled)sAns(i.value);return}if(t.id=="smh"){smartHome();return}if(t.id=="shint"){$("stip").innerHTML="[[bulb]] "+SM.q[SM.i].x[2];return}if(t.id=="all"){stopAll();items().forEach((x,i)=>AT.push(setTimeout(()=>say(x[0]),i*1300)));return}if(t.id=="hint"){$("tip").innerHTML="[[bulb]] "+Q[qi][2];return}if(t.dataset.f){const f=t.dataset.f;if(f=="flip"){fl=true;say(F[0][0])}else if(f=="yes"){F.shift();fl=false}else if(f=="no"){F.push(F.shift());fl=false}else{F=null;fl=false}card();return}
  if(t.id=="next"){qi++;if(qi>=Q.length)done=true;test();return}
  if(t.dataset.a){
   const q=Q[qi],bs=document.querySelectorAll(".opts button");if(bs[0].disabled)return;
   const ok=t.dataset.a==q[0];if(ok)score++;else if(!q.rq){Q.push(Object.assign([...q],{rq:1}))}wk(q[0],ok);
   bs.forEach(b=>{b.disabled=true;if(b.dataset.a==q[0])b.classList.add("ok");else if(b==t)b.classList.add("no")});
   say(q[0]);
-  $("tip").innerHTML=`${ok?"[[ok]] Benar!":"[[no]] Kurang tepat."} <b>${q[0]}</b> = ${q[1]}<br>[[bulb]] ${q[2]}<br><button class="on" id="next" style="margin-top:10px">${qi==Q.length-1?"Lihat skor":"Soal berikutnya →"}</button>`;
+  $("tip").innerHTML=`${ok?"[[ok]] Benar!":"[[no]] Kurang tepat."} <b>${q[0]}</b> = ${q[1]}<br>[[bulb]] ${q[2]}<br><button class="hint" data-s="${q[0]}">[[sound]] Dengar lagi</button><br><button class="on" id="next" style="margin-top:10px">${qi==Q.length-1?"Lihat skor":"Soal berikutnya →"}</button>`;
  }
 });
 let PD="card";
@@ -295,8 +295,7 @@ function sStart(){
 function sBar(){return `<div class="bar"><i style="width:${SM.i/SM.q.length*100}%"></i></div><div class="note" style="margin-bottom:8px">Soal ${SM.i+1} dari ${SM.q.length}</div>`}
 function sShow(){if(SM.i>=SM.q.length)return sEnd();const e=SM.q[SM.i];if(e.i&&!e.sh)sIntro(e);else sQ()}
 function sIntro(e){const x=e.x;
- $("app").innerHTML=sBar()+`<div class="q"><div class="lbl" style="margin:0">Kenalan dulu</div>${IMG[x[0]]?`<img class="qi" src="${IMG[x[0]]}" alt="">`:""}<div class="big" style="${bgs()}">${x[0]}</div><h2 style="margin:0">${x[1]}</h2><div class="tip">[[bulb]] ${x[2]}</div><button class="hint" data-s="${x[0]}">[[sound]] Dengar</button><p><button class="on" id="si" style="padding:12px 22px">Mengerti, tes aku</button></p></div>`;
- setTimeout(()=>say(x[0]),200)}
+ $("app").innerHTML=sBar()+`<div class="q"><div class="lbl" style="margin:0">Kenalan dulu</div>${IMG[x[0]]?`<img class="qi" src="${IMG[x[0]]}" alt="">`:""}<div class="big" style="${bgs()}">${x[0]}</div><h2 style="margin:0">${x[1]}</h2><div class="tip">[[bulb]] ${x[2]}</div><button class="hint" data-s="${x[0]}">[[sound]] Dengar</button><p><button class="on" id="si" style="padding:12px 22px">Mengerti, tes aku</button></p></div>`;}
 function sType(e){const r=MX()[key(e.x)],b=r?r.b:0;if(e.i||b<=1)return"mc";if(b==2)return"rev";if(b==3)return"ls";return TYP.has(mode)?"ty":(SM.i%2?"rev":"ls")}
 function sQ(){
  SM.fb=0;const e=SM.q[SM.i],x=e.x,t=sType(e);e.t=t;
@@ -310,8 +309,7 @@ function sQ(){
  if(t=="ls")b=`<button class="on" data-s="${x[0]}" style="padding:16px 26px;font-size:1.15rem">[[sound]] Putar suara</button><div class="note" style="margin-top:10px">Dengarkan, lalu pilih yang kamu dengar</div><div class="opts">${ch}</div>`;
  if(t=="ty")b=`<div class="big" style="${bgs()}">${x[0]}</div><div class="note">Ketik cara bacanya dengan huruf latin</div><input id="ti" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="mis. a, ya, eo"><button class="on" id="sc" style="width:100%;padding:13px">Periksa</button>`;
  $("app").innerHTML=sBar()+`<div class="q">${b}<div class="tip" id="stip">${easy&&t!="ty"?"[[bulb]] "+x[2]:`<button class="hint" id="shint">[[bulb]] Petunjuk</button>`}</div></div>`;
- if(t=="mc"||t=="ls")setTimeout(()=>say(x[0]),200);
- if(t=="ty")setTimeout(()=>{const i=$("ti");if(i)i.focus()},60);
+  if(t=="ty")setTimeout(()=>{const i=$("ti");if(i)i.focus()},60);
 }
 function sAns(v){
  if(SM.fb)return;SM.fb=1;
@@ -322,7 +320,7 @@ function sAns(v){
  document.querySelectorAll("[data-sa]").forEach(b=>{b.disabled=true;if(b.dataset.sa==x[0])b.classList.add("ok");else if(b.dataset.sa==v)b.classList.add("no")});
  const ti=$("ti"),sc=$("sc");if(ti)ti.disabled=true;if(sc)sc.style.display="none";
  const r=MX()[key(x)]||{b:0},last=SM.i>=SM.q.length-1;
- $("stip").innerHTML=`${ok?"[[ok]] Benar!":"[[no]] Belum tepat."} <b>${x[0]}</b> = ${x[1]}<br>[[bulb]] ${x[2]}<br><span class="note">Level ${r.b} dari 5${ok?"":" · soal ini akan diulang"}</span><br><button class="on" id="sn" style="margin-top:10px;padding:11px 26px">${last?"Lihat hasil":"Lanjut"}</button>`;
+ $("stip").innerHTML=`${ok?"[[ok]] Benar!":"[[no]] Belum tepat."} <b>${x[0]}</b> = ${x[1]}<br>[[bulb]] ${x[2]}<br><span class="note">Level ${r.b} dari 5${ok?"":" · soal ini akan diulang"}</span><br><button class="hint" data-s="${x[0]}">[[sound]] Dengar lagi</button><br><button class="on" id="sn" style="margin-top:10px;padding:11px 26px">${last?"Lihat hasil":"Lanjut"}</button>`;
  say(x[0]);
 }
 function sEnd(){
@@ -334,7 +332,7 @@ let F=null,fl=false;
 const TRIK={v:`<div class="trik"><b>Rumus mudah vokal:</b><br>• Garis <b>tegak</b> ㅣ: tanda ke <b>kanan</b> = a (ㅏ), ke <b>kiri</b> = eo (ㅓ).<br>• Garis <b>datar</b> ㅡ: tanda ke <b>atas</b> = o (ㅗ), ke <b>bawah</b> = u (ㅜ).<br>• <b>Dua tanda</b> = ada bunyi “y”: ㅑ ya, ㅕ yeo, ㅛ yo, ㅠ yu.<br>• ㅡ = eu, ㅣ = i. Hafal 4 dasar dulu: ㅏ ㅓ ㅗ ㅜ, lalu tambahkan versi “y”-nya.</div>`,c:`<div class="trik"><b>Kelompok pasangan:</b> ㄱ/ㅋ (g/k) · ㄷ/ㅌ (d/t) · ㅂ/ㅍ (b/p) · ㅈ/ㅊ (j/ch). Huruf dengan garis tambahan = bunyi lebih kuat.</div>`,s:`<div class="trik">Rumus: konsonan + vokal. ㅇ di awal tidak berbunyi: 아 = a, 오 = o.</div>`};
 Object.assign(TRIK,{r:`<div class="trik"><b>Aturan batchim:</b> hanya ada <b>7 bunyi</b> akhir: k (ㄱ ㅋ) · n (ㄴ) · t (ㄷ ㅅ ㅈ ㅊ ㅌ ㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂ ㅍ) · ng (ㅇ). Hafalkan kelompoknya, bukan satu per satu.</div>`,p:`<div class="trik"><b>Ayo membaca!</b> Kata-kata dari halaman 5 PPT beserta gambarnya. Lihat gambar, baca katanya, lalu uji dengan tes “Gambar → Kata”.</div>`,g:`<div class="trik"><b>Vokal gabungan</b> = dua vokal digabung. Kuncinya: <b>ㅣ</b> di belakang → ㅏ+ㅣ=ㅐ, ㅓ+ㅣ=ㅔ. Awalan <b>ㅗ/ㅜ</b> → bunyi “w”: ㅘ wa, ㅝ wo, ㅟ wi.</div>`,k:`<div class="trik"><b>Konsonan ganda</b> = huruf kembar yang diucapkan lebih <b>tegang/ditekan</b>, tanpa hembusan napas: ㄲ ㄸ ㅃ ㅆ ㅉ.</div>`,b:`<div class="trik"><b>Batchim</b> = konsonan akhir. Hanya ada <b>7 bunyi</b>: k (ㄱㅋ) · n (ㄴ) · t (ㄷㅅㅈㅊㅌㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂㅍ) · ng (ㅇ).</div>`,w:`<div class="trik"><b>Kosakata</b> dari buku kelasmu. Latih membaca, lalu tebak artinya. Gunakan soal “Bacaan → Huruf” untuk melatih mengenali tulisan Korea dari artinya.</div>`});
 function wk(k,ok){upd(mode+":"+k,ok);try{const w=JSON.parse(localStorage.getItem("wk")||"{}");w[k]=Math.max(0,(w[k]||0)+(ok?-1:2));localStorage.setItem("wk",JSON.stringify(w))}catch(e){}}
-function route(){Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():test()}
+function route(){stopAll();Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():test()}
 function card(){
  if(!F&&canPick()){picker("card");return}
  if(!F)F=sh(items().slice());
@@ -342,6 +340,8 @@ function card(){
  const x=F[0];
  $("app").innerHTML=`<p class="note">${canPick()?'<button class="hint" id="pchg">[[refresh]] Ganti huruf</button> ':''}Sisa ${F.length} kartu. Tebak bunyinya dulu, lalu tap kartu untuk melihat jawaban. Kartu “Belum hafal” akan muncul lagi.</p><div class="q fc" data-f="flip"><div class="big" style="${(mode=="w"||mode=="p")?"font-size:2.6rem":""}">${x[0]}</div>${fl?`${IMG[x[0]]?`<img class="qi" src="${IMG[x[0]]}" alt="">`:""}<h2>${x[1]}</h2><div class="tip">[[bulb]] ${x[2]}</div>`:`<div class="note">Tap untuk membalik</div><button class="hint" data-s="${x[0]}">[[sound]] Dengar</button>`}</div>${fl?`<div class="opts"><button data-f="no">[[refresh]] Belum hafal</button><button data-f="yes">[[check]] Hafal</button></div>`:""}`;
 }
+let AT=[];
+function stopAll(){AT.forEach(clearTimeout);AT=[];clearTimeout(SW);try{speechSynthesis.cancel()}catch(e){}}
 /* ===== IZIN SUARA: buka kunci audio browser saat sentuhan pertama ===== */
 let UNL=false;
 function quiet(){if(UNL)return;UNL=true;try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.resume();speechSynthesis.speak(u);speechSynthesis.getVoices();chk()}catch(e){}}
