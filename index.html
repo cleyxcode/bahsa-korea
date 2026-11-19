@@ -189,7 +189,7 @@ let KO=false;
 function stat(){const e=$("vs");if(!e)return;e.innerHTML=(!window.speechSynthesis?"[[no]] Browser ini tidak mendukung suara. Coba buka dengan Chrome.":KO?"[[ok]] Suara Korea ditemukan di perangkatmu.":"[[alert]] Suara Korea tidak ditemukan. Sementara dipakai suara Indonesia yang membaca ejaan latin (perkiraan saja). Untuk suara asli, pasang suara Korean di pengaturan teks-ke-suara perangkatmu.")+" <button id=\"tv\">[[sound]] Tes suara</button>"}
 function chk(){try{KO=speechSynthesis.getVoices().some(v=>v.lang.toLowerCase().replace("_","-").startsWith("ko"))}catch(e){KO=false}stat()}
 function fb(t){const wd=WB.find(y=>y.ko==t);if(wd)return wd.rom.replace(/eo/g,"o").replace(/eu/g,"e");const L=[V.map(x=>[x[0],x[1]]),C.map(x=>[x[0],x[2]+"a"]),S,EX.g,EX.k,EX.b];for(const l of L){const x=l.find(y=>y[0]==t);if(x)return x[1].replace(/eo/g,"o").replace(/eu/g,"e")}return null}
-let SW;function say(t){try{if(mode=="r"&&FI[t])t=String.fromCharCode(0xAC00+FI[t]);const f=KO?null:fb(t);const u=new SpeechSynthesisUtterance(f||jm(t));let go=false;u.lang=f?"id-ID":"ko-KR";u.rate=.8;u.onstart=()=>{go=true};speechSynthesis.cancel();setTimeout(()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}},80);clearTimeout(SW);SW=setTimeout(()=>{if(!go){const e=$("vs");if(e)e.innerHTML="[[no]] Suara tidak berhasil diputar di sini. Buka link halaman ini langsung di Chrome atau Safari (bukan di dalam aplikasi Claude/WhatsApp), lalu cek volume media dan mode senyap. <button id=\"tv\">[[sound]] Coba lagi</button>"}},1800)}catch(e){stat()}}
+let SW;function say(t){try{if(!canSpeak())return;if(mode=="r"&&FI[t])t=String.fromCharCode(0xAC00+FI[t]);const f=KO?null:fb(t);const u=new SpeechSynthesisUtterance(f||jm(t));let go=false;u.lang=f?"id-ID":"ko-KR";u.rate=.8;u.onstart=()=>{go=true};speechSynthesis.cancel();setTimeout(()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}},80);clearTimeout(SW);SW=setTimeout(()=>{if(!go){const e=$("vs");if(e)e.innerHTML="[[no]] Suara tidak berhasil diputar di sini. Buka link halaman ini langsung di Chrome atau Safari (bukan di dalam aplikasi Claude/WhatsApp), lalu cek volume media dan mode senyap. <button id=\"tv\">[[sound]] Coba lagi</button>"}},1800)}catch(e){stat()}}
 function head(){
  $("modes").innerHTML=Object.keys(NAMES).map(k=>`<button class="${k==mode?"on":""}" data-m="${k}">${NAMES[k]}</button>`).join("");
  $("tabs").innerHTML=[["learn","[[book]] Belajar"],["smart","[[zap]] Pintar"],["card","[[cards]] Kartu"],["test","[[edit]] Tes"],["kata","[[words]] Kata"]].map(t=>`<button class="${t[0]==tab?"on":""}" data-t="${t[0]}">${t[1]}</button>`).join("");
@@ -413,8 +413,9 @@ let AT=[];
 function stopAll(){AT.forEach(clearTimeout);AT=[];clearTimeout(SW);try{speechSynthesis.cancel()}catch(e){}}
 /* ===== IZIN SUARA: buka kunci audio browser saat sentuhan pertama ===== */
 let UNL=false;
-function quiet(){if(UNL)return;UNL=true;try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.resume();speechSynthesis.speak(u);speechSynthesis.getVoices();chk()}catch(e){}}
-["pointerdown","touchstart","keydown"].forEach(ev=>document.addEventListener(ev,quiet,{once:true,passive:true,capture:true}));
+function canSpeak(){return !navigator.userActivation||navigator.userActivation.hasBeenActive}
+function quiet(){if(UNL||!canSpeak())return;UNL=true;try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.resume();speechSynthesis.speak(u);speechSynthesis.getVoices();chk()}catch(e){}}
+["click","pointerup","touchend","keydown"].forEach(ev=>document.addEventListener(ev,quiet,{passive:true,capture:true}));
 (function(){const o=$("snd");if(!o)return;o.innerHTML=o.innerHTML;
  if(!window.speechSynthesis){o.remove();return}
  $("snd-on").addEventListener("click",()=>{quiet();o.remove();setTimeout(()=>say("ㅏ"),150)});
