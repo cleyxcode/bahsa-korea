@@ -177,7 +177,7 @@ const V=[["ㅏ","a","a","Tanda ke kanan → “a”"],["ㅑ","ya","ya","Dua tand
 const C=[["ㄱ","g","g","Seperti huruf “7” terbalik (g)"],["ㄴ","n","n","Seperti huruf L tidur (n)"],["ㄷ","d","d","Seperti kotak terbuka (d)"],["ㄹ","r/l","r","Seperti angka 2 (r/l)"],["ㅁ","m","m","Berbentuk kotak (m)"],["ㅂ","b","b","Seperti ember (b)"],["ㅅ","s","s","Seperti atap/gunung (s)"],["ㅇ","ng","","Lingkaran: diam di awal, “ng” di akhir"],["ㅈ","j","j","Seperti ㅅ dengan topi (j)"],["ㅊ","ch","ch","ㅈ + topi lagi (ch)"],["ㅋ","k","k","ㄱ + garis tengah (k tebal)"],["ㅌ","t","t","ㄷ + garis tengah (t tebal)"],["ㅍ","p","p","Seperti pintu/gerbang (p)"],["ㅎ","h","h","Topi + lingkaran (h)"]];
 const LI=[0,2,3,5,6,7,9,11,12,14,15,16,17,18],VI=[0,2,4,6,8,12,13,17,18,20];
 const S=[];C.forEach((c,i)=>V.forEach((v,j)=>S.push([String.fromCharCode(0xAC00+(LI[i]*21+VI[j])*28),c[2]+v[2],c[0]+" ("+(c[2]||"–")+") + "+v[0]+" ("+v[2]+")"+(c[2]?"":" → ㅇ diam, baca vokalnya saja")])));
-const NAMES={v:"Vokal",c:"Konsonan",s:"Cara Baca",b:"Batchim",r:"Aturan Batchim",g:"Vokal Gabungan",k:"Konsonan Ganda",p:"Ayo Membaca",w:"Kosakata"};
+const NAMES={v:"Vokal",c:"Konsonan",m:"Campuran",s:"Cara Baca",b:"Batchim",r:"Aturan Batchim",g:"Vokal Gabungan",k:"Konsonan Ganda",p:"Ayo Membaca",w:"Kosakata"};
 let mode="v",tab="smart",dir=0,Q=[],qi=0,score=0,done=false;
 const $=id=>document.getElementById(id);
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
@@ -186,10 +186,10 @@ const VI2={"ㅏ":0,"ㅐ":1,"ㅑ":2,"ㅒ":3,"ㅓ":4,"ㅔ":5,"ㅕ":6,"ㅖ":7,"ㅗ"
 const LI2={"ㄱ":0,"ㄲ":1,"ㄴ":2,"ㄷ":3,"ㄸ":4,"ㄹ":5,"ㅁ":6,"ㅂ":7,"ㅃ":8,"ㅅ":9,"ㅆ":10,"ㅇ":11,"ㅈ":12,"ㅉ":13,"ㅊ":14,"ㅋ":15,"ㅌ":16,"ㅍ":17,"ㅎ":18};
 function jm(t){if(t in VI2)return String.fromCharCode(0xAC00+(11*21+VI2[t])*28);if(t in LI2)return String.fromCharCode(0xAC00+LI2[t]*21*28);return t}
 let KO=false;
-function stat(){const e=$("vs");if(!e)return;e.innerHTML=(!window.speechSynthesis?"[[no]] Browser ini tidak mendukung suara. Coba buka dengan Chrome.":KO?"[[ok]] Suara Korea ditemukan di perangkatmu.":"[[alert]] Suara Korea tidak ditemukan. Sementara dipakai suara Indonesia yang membaca ejaan latin (perkiraan saja). Untuk suara asli, pasang suara Korean di pengaturan teks-ke-suara perangkatmu.")+" <button id=\"tv\">[[sound]] Tes suara</button>"}
+function stat(){const e=$("vs");if(!e)return;e.innerHTML=(!window.speechSynthesis?"[[no]] Browser ini tidak mendukung suara. Coba buka dengan Chrome.":KO?"[[ok]] Suara Korea ditemukan di perangkatmu.":"[[alert]] Suara Korea tidak ditemukan. Sementara dipakai suara Indonesia yang membaca ejaan latin (perkiraan saja). Untuk suara asli, pasang suara Korean di pengaturan teks-ke-suara perangkatmu.")+" <button id=\"tv\">[[sound]] Tes suara</button> <button id=\"tmu\">"+(MUTE?"[[mute]] Suara mati":"[[sound]] Suara hidup")+"</button> <button id=\"trt\">Kecepatan: "+RN[RI]+"</button>"}
 function chk(){try{KO=speechSynthesis.getVoices().some(v=>v.lang.toLowerCase().replace("_","-").startsWith("ko"))}catch(e){KO=false}stat()}
 function fb(t){const wd=WB.find(y=>y.ko==t);if(wd)return wd.rom.replace(/eo/g,"o").replace(/eu/g,"e");const L=[V.map(x=>[x[0],x[1]]),C.map(x=>[x[0],x[2]+"a"]),S,EX.g,EX.k,EX.b];for(const l of L){const x=l.find(y=>y[0]==t);if(x)return x[1].replace(/eo/g,"o").replace(/eu/g,"e")}return null}
-let SW;function say(t){try{if(!canSpeak())return;if(mode=="r"&&FI[t])t=String.fromCharCode(0xAC00+FI[t]);const f=KO?null:fb(t);const u=new SpeechSynthesisUtterance(f||jm(t));let go=false;u.lang=f?"id-ID":"ko-KR";u.rate=.8;u.onstart=()=>{go=true};speechSynthesis.cancel();setTimeout(()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}},80);clearTimeout(SW);SW=setTimeout(()=>{if(!go){const e=$("vs");if(e)e.innerHTML="[[no]] Suara tidak berhasil diputar di sini. Buka link halaman ini langsung di Chrome atau Safari (bukan di dalam aplikasi Claude/WhatsApp), lalu cek volume media dan mode senyap. <button id=\"tv\">[[sound]] Coba lagi</button>"}},1800)}catch(e){stat()}}
+let SW;function say(t){try{if(!canSpeak()||MUTE)return;if(mode=="r"&&FI[t])t=String.fromCharCode(0xAC00+FI[t]);const f=KO?null:fb(t);const u=new SpeechSynthesisUtterance(f||jm(t));let go=false;u.lang=f?"id-ID":"ko-KR";u.rate=RT[RI];u.onstart=()=>{go=true};speechSynthesis.cancel();setTimeout(()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}},80);clearTimeout(SW);SW=setTimeout(()=>{if(!go){const e=$("vs");if(e)e.innerHTML="[[no]] Suara tidak berhasil diputar di sini. Buka link halaman ini langsung di Chrome atau Safari (bukan di dalam aplikasi Claude/WhatsApp), lalu cek volume media dan mode senyap. <button id=\"tv\">[[sound]] Coba lagi</button>"}},1800)}catch(e){stat()}}
 function head(){
  $("modes").innerHTML=Object.keys(NAMES).map(k=>`<button class="${k==mode?"on":""}" data-m="${k}">${NAMES[k]}</button>`).join("");
  $("tabs").innerHTML=[["learn","[[book]] Belajar"],["smart","[[zap]] Pintar"],["card","[[cards]] Kartu"],["test","[[edit]] Tes"],["kata","[[words]] Kata"]].map(t=>`<button class="${t[0]==tab?"on":""}" data-t="${t[0]}">${t[1]}</button>`).join("");
@@ -205,55 +205,63 @@ function learn(){
 }
 
 /* ===== PEMILIH HURUF (BARU): vokal & konsonan ===== */
-const SEL={v:new Set(),c:new Set()};
-try{const j=JSON.parse(localStorage.getItem("sel")||"{}");SEL.v=new Set(j.v||[]);SEL.c=new Set(j.c||[])}catch(e){}
-function svSel(){try{localStorage.setItem("sel",JSON.stringify({v:[...SEL.v],c:[...SEL.c]}))}catch(e){}}
-function canPick(){return mode=="v"||mode=="c"}
+const SEL={};["v","c","m","b","r","g","k"].forEach(k=>SEL[k]=new Set());
+try{const j=JSON.parse(localStorage.getItem("sel")||"{}");for(const k in SEL)SEL[k]=new Set(j[k]||[])}catch(e){}
+function svSel(){try{localStorage.setItem("sel",JSON.stringify(Object.fromEntries(Object.entries(SEL).map(e=>[e[0],[...e[1]]]))))}catch(e){}}
+function canPick(){return ["v","c","m","b","r","g","k"].includes(mode)}
 // huruf terpilih untuk mode saat ini (kosong = belum memilih)
 function picked(){return canPick()?items().filter(x=>SEL[mode].has(x[0])):items()}
+function groups(){return mode=="m"?[["Vokal",V.map(x=>[x[0],x[1]])],["Konsonan",C.map(x=>[x[0],x[1]])],["Vokal gabungan",EX.g.map(x=>[x[0],x[1]])],["Konsonan ganda",EX.k.map(x=>[x[0],x[1]])],["Batchim",EX.b.map(x=>[x[0],x[1]])]]:[[null,items()]]}
 function picker(dest){
- const a=items(),P=SEL[mode],n=P.size,nm=NAMES[mode].toLowerCase();
- $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 4px">Pilih ${nm} yang ingin dilatih</div><p class="note" style="margin:0 0 6px">Pilih beberapa huruf saja supaya lebih fokus. Urutan soal/kartu akan diacak.</p><div class="pgrid">${a.map(x=>`<button class="pk ${P.has(x[0])?"sel":""}" data-pk="${x[0]}">${x[0]}<small>${x[1]}</small></button>`).join("")}</div><p class="note" style="margin:0 0 10px">Terpilih: <b>${n}</b> dari ${a.length} ${nm}</p><div class="row"><button id="pall">Pilih semua</button><button id="pnone">Kosongkan</button><button id="prnd3">[[zap]] Acak 3</button><button id="prnd5">[[zap]] Acak 5</button></div><button class="on" id="pgo" data-dest="${dest}" style="width:100%;padding:14px" ${n?"":"disabled"}>${dest=="test"?"Mulai tes":dest=="kata"?"Simpan & lanjut":"Mulai kartu"} (${n} huruf)</button></div>`;
+ const a=items(),P=SEL[mode],n=P.size,nm=mode=="m"?"huruf":NAMES[mode].toLowerCase();
+ const gs=groups().map((g,gi)=>(g[0]?`<div class="lbl" style="margin:12px 0 2px">${g[0]} <button class="hint" data-pg="${gi}">pilih / lepas semua</button></div>`:"")+`<div class="pgrid">${g[1].map(x=>`<button class="pk ${P.has(x[0])?"sel":""}" data-pk="${x[0]}">${x[0]}<small>${x[1]}</small></button>`).join("")}</div>`).join("");
+ $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 4px">Pilih ${nm} yang ingin dilatih</div><p class="note" style="margin:0 0 6px">Pilih beberapa huruf saja supaya lebih fokus. Urutan soal/kartu akan diacak.</p>${gs}<p class="note" style="margin:6px 0 10px">Terpilih: <b>${n}</b> dari ${a.length} ${nm}</p><div class="row"><button id="pall">Pilih semua</button><button id="pnone">Kosongkan</button><button id="prnd3">[[zap]] Acak 3</button><button id="prnd5">[[zap]] Acak 5</button></div><button class="on" id="pgo" data-dest="${dest}" style="width:100%;padding:14px" ${n?"":"disabled"}>${dest=="test"?"Mulai tes":(dest=="kata"||dest=="smart")?"Simpan & lanjut":"Mulai kartu"} (${n} huruf)</button></div>`;
 }
 
-function start(w){let it=items();if(canPick()&&SEL[mode].size)it=picked();if(w){let m={};try{m=JSON.parse(localStorage.getItem("wk")||"{}")}catch(e){}const x=it.filter(i=>m[i[0]]>0);if(x.length)it=x}if(dir==2){it=it.filter(x=>IMG[x[0]]);if(it.length<4)dir=0}Q=sh(it).slice(0,10);qi=0;score=0;done=false;test()}
+function start(w){let it=items();if(canPick()&&SEL[mode].size)it=picked();if(MIR){const f=it.filter(x=>mirOf(x[0]).some(y=>items().some(z=>z[0]==y)));if(f.length>=2)it=f}if(w){let m={};try{m=JSON.parse(localStorage.getItem("wk")||"{}")}catch(e){}const x=it.filter(i=>m[i[0]]>0);if(x.length)it=x}if(dir==2){it=it.filter(x=>IMG[x[0]]);if(it.length<4)dir=0}Q=sh(it).slice(0,10);qi=0;score=0;done=false;test()}
 function test(){
  const a=$("app");
  if(!Q.length&&!done){
+  const HI=items().filter(x=>IMG[x[0]]).length>=4;if(dir==2&&!HI)dir=0;
   const ps=canPick()?`<div class="note" style="margin:0 0 8px">Huruf tes: <b>${SEL[mode].size?SEL[mode].size+" huruf pilihanmu":"semua "+NAMES[mode].toLowerCase()}</b> <button class="hint" id="ptest">Pilih huruf</button></div>`:"";
-  a.innerHTML=ps+`<div class="lbl">Arah soal</div><div class="seg"><button class="${!dir?"on":""}" data-d="0">Huruf → Bacaan</button><button class="${dir==1?"on":""}" data-d="1">Bacaan → Huruf</button><button class="${dir==2?"on":""}" data-d="2">[[image]] Gambar → Kata</button></div><p><button class="on" id="go">Mulai tes (10 soal acak)</button> <button id="weak">[[target]] Latih yang sering salah</button></p><p class="note">Tips: tekan [[bulb]] Petunjuk jika lupa. Soal yang salah akan diulang di akhir, dan huruf yang sering salah dicatat otomatis.</p>`;return;
+  a.innerHTML=ps+`<div class="lbl">Arah soal</div><div class="seg"><button class="${!dir?"on":""}" data-d="0">Huruf → Bacaan</button><button class="${dir==1?"on":""}" data-d="1">Bacaan → Huruf</button><button class="${dir==2?"on":""}" data-d="2" ${HI?"":"disabled"}>[[image]] Gambar → Kata</button></div>${HI?"":`<p class="note">Tes gambar hanya tersedia di materi Ayo Membaca dan Kosakata.</p>`}<p><button class="on" id="go">Mulai tes (10 soal acak)</button> <button id="weak">[[target]] Latih yang sering salah</button>${mirOK()?` <button id="tmir">[[refresh]] Latih huruf yang mirip</button>`:""}</p><p class="note">Tips: tekan [[bulb]] Petunjuk jika lupa. Soal yang salah akan diulang di akhir, dan huruf yang sering salah dicatat otomatis.</p>`;return;
  }
  if(done){
   const e=score>=9?"[[trophy]]":score>=6?"[[star]]":"[[target]]";
   a.innerHTML=`<div class="q"><div class="res">${e}</div><h2>Skor: ${score} / ${Q.length}</h2><p class="note">${score>=9?"Luar biasa!":score>=6?"Bagus, ulangi untuk lebih hafal.":"Tidak apa-apa, buka tab Belajar lalu coba lagi."}</p><button class="on" id="again">Tes lagi (soal baru)</button></div>`;return;
  }
  const q=Q[qi],all=items();
- const pool=sh(all.filter(x=>x[1]!=q[1]&&x[0]!=q[0]));
+ let pool=sh(all.filter(x=>x[1]!=q[1]&&x[0]!=q[0]));if(MIR){const mo=mirOf(q[0]);pool=[...pool.filter(x=>mo.includes(x[0])),...pool.filter(x=>!mo.includes(x[0]))]}
  const wrong=[],seen=new Set();
  for(const x of pool){const key=dir?x[0]:x[1];if(!seen.has(key)){seen.add(key);wrong.push(x);}if(wrong.length==3)break}
  const opts=sh([q,...wrong]);
- a.innerHTML=`<div class="bar"><i style="width:${qi/Q.length*100}%"></i></div><div class="q"><div class="note">Soal ${qi+1} dari ${Q.length} · Skor ${score}</div>${dir==2?`<img class="qi" src="${IMG[q[0]]}" alt=""><div class="note">Pilih kata Korea yang cocok dengan gambar</div>`:dir?`<div class="big" style="font-size:3rem">${q[1]}</div><div class="note">Pilih huruf yang benar</div>`:`<div class="big" style="${(mode=="w"||mode=="p")?"font-size:2.6rem":""}">${q[0]}</div><div class="note">Bagaimana cara membacanya?</div><button class="hint" data-s="${q[0]}">[[sound]] Dengar lagi</button>`}<div class="opts">${opts.map(o=>`<button data-a="${o[0]}">${dir?o[0]:o[1]}</button>`).join("")}</div><div class="tip" id="tip"><button class="hint" id="hint">[[bulb]] Petunjuk</button></div></div>`;
+ a.innerHTML=`<div class="bar"><i style="width:${qi/Q.length*100}%"></i></div><div class="q"><div class="note">Soal ${qi+1} dari ${Q.length} · Skor ${score}${MIR?" · huruf mirip":""}</div>${dir==2?`<img class="qi" src="${IMG[q[0]]}" alt=""><div class="note">Pilih kata Korea yang cocok dengan gambar</div>`:dir?`<div class="big" style="font-size:3rem">${q[1]}</div><div class="note">Pilih huruf yang benar</div>`:`<div class="big" style="${(mode=="w"||mode=="p")?"font-size:2.6rem":""}">${q[0]}</div><div class="note">Bagaimana cara membacanya?</div><button class="hint" data-s="${q[0]}">[[sound]] Dengar lagi</button>`}<div class="opts">${opts.map(o=>`<button data-a="${o[0]}">${dir?o[0]:o[1]}</button>`).join("")}</div><div class="tip" id="tip"><button class="hint" id="hint">[[bulb]] Petunjuk</button></div></div>`;
 }
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-m],[data-t],[data-s],[data-d],[data-a],[data-f],#go,#again,#next,#hint,#weak,#all,#tv,[data-sa],#sgo,#sn,#si,#sc,#smh,#shint,[data-pk],#pall,#pnone,#prnd3,#prnd5,#pgo,#pchg,#ptest,[data-ka],#kgo,#kn,#kh,#kpick");if(!t)return;
+ const t=e.target.closest("[data-m],[data-t],[data-s],[data-d],[data-a],[data-f],#go,#again,#next,#hint,#weak,#all,#tv,[data-sa],#sgo,#sn,#si,#sc,#smh,#shint,[data-pk],#pall,#pnone,#prnd3,#prnd5,#pgo,#pchg,#ptest,[data-ka],#kgo,#kn,#kh,#kpick,[data-pg],#sp,#tmu,#trt,#tmir");if(!t)return;
+ if(t.id=="tmu"){MUTE=!MUTE;if(MUTE)stopAll();svSnd();stat();return}
+ if(t.id=="trt"){RI=(RI+1)%3;svSnd();stat();say("ㅏ");return}
+ if(t.id=="tmir"){MIR=true;start();return}
  if(t.dataset.ka!==undefined){kAns(+t.dataset.ka);return}
  if(t.id=="kgo"){kStart();return}
  if(t.id=="kn"){KM.i++;kShow();return}
  if(t.id=="kh"){$("ktip").innerHTML="[[bulb]] "+brk(KM.q[KM.i].w);return}
  if(t.id=="kpick"){PD="kata";picker("kata");return}
+ if(t.dataset.pg!==undefined){const g=groups()[+t.dataset.pg][1],P=SEL[mode],all=g.every(x=>P.has(x[0]));g.forEach(x=>all?P.delete(x[0]):P.add(x[0]));svSel();picker(PD);return}
+ if(t.id=="sp"){PD="smart";picker("smart");return}
  /* pemilih huruf */
  if(t.dataset.pk){const P=SEL[mode];P.has(t.dataset.pk)?P.delete(t.dataset.pk):P.add(t.dataset.pk);svSel();picker(PD);return}
  if(t.id=="pall"){items().forEach(x=>SEL[mode].add(x[0]));svSel();picker(PD);return}
  if(t.id=="pnone"){SEL[mode].clear();svSel();picker(PD);return}
  if(t.id=="prnd3"||t.id=="prnd5"){SEL[mode]=new Set(sh(items()).slice(0,t.id=="prnd3"?3:5).map(x=>x[0]));svSel();picker(PD);return}
- if(t.id=="pgo"){if(PD=="kata"){PD="card";kHome()}else if(PD=="test"){PD="card";Q=[];done=false;test()}else{F=sh(picked());fl=false;card()}return}
+ if(t.id=="pgo"){if(PD=="kata"){PD="card";kHome()}else if(PD=="smart"){PD="card";smartHome()}else if(PD=="test"){PD="card";Q=[];done=false;test()}else{F=sh(picked());fl=false;card()}return}
  if(t.id=="pchg"){F=null;fl=false;PD="card";picker("card");return}
  if(t.id=="ptest"){PD="test";picker("test");return}
  if(t.dataset.m){mode=t.dataset.m;route();return}
  if(t.dataset.t){tab=t.dataset.t;route();return}
  if(t.dataset.s){say(t.dataset.s);return}
  if(t.dataset.d){dir=+t.dataset.d;test();return}
- if(t.id=="go"||t.id=="again"){start();return}if(t.id=="weak"){start(1);return}if(t.id=="tv"){say("ㅏ");return}if(t.dataset.sa!==undefined){sAns(t.dataset.sa);return}if(t.id=="sgo"){sStart();return}if(t.id=="sn"){SM.i++;sShow();return}if(t.id=="si"){SM.q[SM.i].sh=1;sQ();return}if(t.id=="sc"){const i=$("ti");if(i&&!i.disabled)sAns(i.value);return}if(t.id=="smh"){smartHome();return}if(t.id=="shint"){$("stip").innerHTML="[[bulb]] "+SM.q[SM.i].x[2];return}if(t.id=="all"){stopAll();items().forEach((x,i)=>AT.push(setTimeout(()=>say(x[0]),i*1300)));return}if(t.id=="hint"){$("tip").innerHTML="[[bulb]] "+Q[qi][2];return}if(t.dataset.f){const f=t.dataset.f;if(f=="flip"){fl=true;say(F[0][0])}else if(f=="yes"){F.shift();fl=false}else if(f=="no"){F.push(F.shift());fl=false}else{F=null;fl=false}card();return}
+ if(t.id=="go"){MIR=false;start();return}if(t.id=="again"){start();return}if(t.id=="weak"){MIR=false;start(1);return}if(t.id=="tv"){say("ㅏ");return}if(t.dataset.sa!==undefined){sAns(t.dataset.sa);return}if(t.id=="sgo"){sStart();return}if(t.id=="sn"){SM.i++;sShow();return}if(t.id=="si"){SM.q[SM.i].sh=1;sQ();return}if(t.id=="sc"){const i=$("ti");if(i&&!i.disabled)sAns(i.value);return}if(t.id=="smh"){smartHome();return}if(t.id=="shint"){$("stip").innerHTML="[[bulb]] "+SM.q[SM.i].x[2];return}if(t.id=="all"){stopAll();items().forEach((x,i)=>AT.push(setTimeout(()=>say(x[0]),i*Math.round(1040/RT[RI]))));return}if(t.id=="hint"){$("tip").innerHTML="[[bulb]] "+Q[qi][2];return}if(t.dataset.f){const f=t.dataset.f;if(f=="flip"){fl=true;say(F[0][0])}else if(f=="yes"){F.shift();fl=false}else if(f=="no"){F.push(F.shift());fl=false}else{F=null;fl=false}card();return}
  if(t.id=="next"){qi++;if(qi>=Q.length)done=true;test();return}
  if(t.dataset.a){
   const q=Q[qi],bs=document.querySelectorAll(".opts button");if(bs[0].disabled)return;
@@ -266,16 +274,18 @@ document.addEventListener("click",e=>{
 let PD="card";
 const W="가수:penyanyi|고기:daging|나무:pohon|나비:kupu-kupu|다리:kaki / jembatan|모자:topi|휴지:tisu|바나나:pisang|토마토:tomat|버스:bus|기차:kereta api|아기:bayi|여자:perempuan|오리:bebek|우유:susu|커피:kopi|치마:rok|포도:anggur|피아노:piano|피자:pizza|가방:tas|교실:ruang kelas|길:jalan|김치:kimchi|불고기:bulgogi|남자:laki-laki|돈:uang|물:air|밥:nasi|사람:orang|중국:Cina|미국:Amerika|일본:Jepang|한국:Korea|수박:semangka|친구:teman|집:rumah|컴퓨터:komputer|칼:pisau|자전거:sepeda|학교:sekolah|문:pintu|도시락:bekal|사진:foto|지갑:dompet|창문:jendela|번호:nomor|종이:kertas|공부:belajar|연필:pensil|발:kaki|손:tangan|여름:musim panas|인도네시아:Indonesia|가위:gunting|개:anjing|시계:jam|사과:apel|의사:dokter|돼지:babi|교회:gereja|쥐:tikus|게:kepiting|귀:telinga|열쇠:kunci|계단:tangga|화장실:toilet|침대:tempat tidur|세탁기:mesin cuci|영화:film|바퀴벌레:kecoa|개미:semut|메뚜기:belalang|까치:burung murai|토끼:kelinci|뿌리:akar|냉장고:kulkas|생선:ikan|빵:roti|학생:siswa|딸기:stroberi|책상:meja|선생님:guru|텔레비전:televisi|새:burung|공책:buku tulis|쌍둥이:kembar|쌀:beras|딸:anak perempuan|색깔:warna|아빠:ayah|날씨:cuaca".split("|").map(s=>{const p=s.split(":");return [p[0],p[1],"Arti: "+p[1]]});
 
-/* >>> GAMBAR: ganti baris di bawah dengan baris "const IMG={...}" asli dari file lamamu (data base64 gambar kosakata).
-   Kalau dibiarkan kosong, aplikasi tetap jalan, hanya tanpa gambar dan tes "Gambar → Kata" tidak aktif. <<< */
-const IMG={};
+/* GAMBAR: dibuat otomatis dari emoji. Punya foto asli? Tempel isi "const IMG={...}" lama ke IMG0 di bawah (ubah namanya jadi IMG0): foto akan menggantikan emoji. */
+const IMG0={};
+const EM={"가수":"🎤","고기":"🥩","나무":"🌳","나비":"🦋","다리":"🌉","모자":"👒","휴지":"🧻","바나나":"🍌","토마토":"🍅","버스":"🚌","기차":"🚆","아기":"👶","여자":"👩","오리":"🦆","우유":"🥛","커피":"☕","치마":"👗","포도":"🍇","피아노":"🎹","피자":"🍕","가방":"🎒","길":"🛣️","김치":"🥬","불고기":"🥘","남자":"👨","돈":"💵","물":"💧","밥":"🍚","사람":"🧑","중국":"🇨🇳","미국":"🇺🇸","일본":"🇯🇵","한국":"🇰🇷","수박":"🍉","친구":"🧑‍🤝‍🧑","집":"🏠","컴퓨터":"💻","칼":"🔪","자전거":"🚲","학교":"🏫","문":"🚪","도시락":"🍱","사진":"📷","지갑":"👛","창문":"🪟","번호":"🔢","종이":"📄","공부":"📚","연필":"✏️","발":"🦶","손":"✋","여름":"☀️","인도네시아":"🇮🇩","가위":"✂️","개":"🐶","시계":"⏰","사과":"🍎","의사":"🧑‍⚕️","돼지":"🐷","교회":"⛪","쥐":"🐭","게":"🦀","귀":"👂","열쇠":"🔑","화장실":"🚻","침대":"🛏️","세탁기":"🧺","영화":"🎬","바퀴벌레":"🪳","개미":"🐜","메뚜기":"🦗","토끼":"🐰","뿌리":"🌱","냉장고":"🧊","생선":"🐟","빵":"🍞","학생":"🧑‍🎓","딸기":"🍓","선생님":"🧑‍🏫","텔레비전":"📺","새":"🐦","공책":"📓","쌍둥이":"👯","쌀":"🌾","딸":"👧","색깔":"🎨","아빠":"👨‍👧","날씨":"🌤️"};
+const IMG={};for(const k in EM)IMG[k]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="54" font-size="72" text-anchor="middle" dominant-baseline="central">'+EM[k]+'</text></svg>');
+Object.assign(IMG,IMG0);
 
 const EX={w:W,p:W.slice(0,20),g:[["ㅐ","ae","ㅏ + ㅣ → 애"],["ㅔ","e","ㅓ + ㅣ → 에"],["ㅒ","yae","ㅑ + ㅣ → 얘"],["ㅖ","ye","ㅕ + ㅣ → 예"],["ㅘ","wa","ㅗ + ㅏ → 와"],["ㅙ","wae","ㅗ + ㅐ → 왜 (di kelas dibaca “we”)"],["ㅚ","oe","ㅗ + ㅣ → 외 (di kelas dibaca “we”)"],["ㅝ","wo","ㅜ + ㅓ → 워"],["ㅞ","we","ㅜ + ㅔ → 웨"],["ㅟ","wi","ㅜ + ㅣ → 위"],["ㅢ","ui","ㅡ + ㅣ → 의"]],k:[["ㄲ","kk","ㄱ kembar: g ditekan, tanpa hembusan"],["ㄸ","tt","ㄷ kembar: d/t ditekan"],["ㅃ","pp","ㅂ kembar: b/p ditekan"],["ㅆ","ss","ㅅ kembar: s ditekan"],["ㅉ","jj","ㅈ kembar: j ditekan"]],b:[["각","ㄱ","k"],["간","ㄴ","n"],["갇","ㄷ","t"],["갈","ㄹ","l"],["감","ㅁ","m"],["갑","ㅂ","p"],["갓","ㅅ","t"],["강","ㅇ","ng"],["갖","ㅈ","t"],["갗","ㅊ","t"],["갘","ㅋ","k"],["같","ㅌ","t"],["갚","ㅍ","p"],["갛","ㅎ","t"]].map(x=>[x[0],"ga"+x[2],"ㄱ + ㅏ + "+x[1]+" → batchim "+x[1]+" dibaca ["+x[2]+"]"])};
 
 const FI={"ㄱ":1,"ㅋ":24,"ㄴ":4,"ㄷ":7,"ㅅ":19,"ㅈ":22,"ㅊ":23,"ㅌ":25,"ㅎ":27,"ㄹ":8,"ㅁ":16,"ㅂ":17,"ㅍ":26,"ㅇ":21};
 const GR={k:"ㄱ ㅋ",n:"ㄴ",t:"ㄷ ㅅ ㅈ ㅊ ㅌ ㅎ",l:"ㄹ",m:"ㅁ",p:"ㅂ ㅍ",ng:"ㅇ"};
 EX.r=[["ㄱ","k"],["ㅋ","k"],["ㄴ","n"],["ㄷ","t"],["ㅅ","t"],["ㅈ","t"],["ㅊ","t"],["ㅌ","t"],["ㅎ","t"],["ㄹ","l"],["ㅁ","m"],["ㅂ","p"],["ㅍ","p"],["ㅇ","ng"]].map(x=>[x[0],x[1],x[0]+" di akhir suku kata dibaca ["+x[1]+"]. Satu kelompok: "+GR[x[1]]]);
-const TYP=new Set(["v","c","s","g","k","b","r"]),IV=[0,2,20,1440,4320,10080];
+const TYP=new Set(["v","c","m","s","g","k","b","r"]),IV=[0,2,20,1440,4320,10080];
 let SM=null;
 const key=x=>mode+":"+x[0];
 function MX(){try{return JSON.parse(localStorage.getItem("mx")||"{}")}catch(e){return{}}}
@@ -286,9 +296,9 @@ function streak(w){try{const d=new Date().toDateString(),y=new Date(Date.now()-8
 const bgs=()=>(mode=="w"||mode=="p")?"font-size:2.6rem":"";
 function smartHome(){
  const s=stats(),m=MX(),st=streak();
- $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 8px">Penguasaan ${NAMES[mode]}</div><div class="bar"><i style="width:${s.pct}%"></i></div><p style="margin:6px 0 14px"><b style="font-size:1.7rem">${s.pct}%</b> <span class="note">· ${s.mast}/${s.n} hafal · ${s.nw} baru · ${s.due} perlu diulang</span></p><button class="on" id="sgo" style="width:100%;padding:14px">[[zap]] Mulai latihan pintar</button><p class="note" style="margin:12px 0 0">[[flame]] Runtutan: ${st} hari. Sistem memilih huruf yang paling perlu dilatih, mengenalkan huruf baru sedikit demi sedikit, dan mengulang yang salah.</p></div><div class="lbl">Peta penguasaan (tap untuk dengar)</div><div class="map ${(mode=="w"||mode=="p")?"wide":""}">${items().map(x=>{const r=m[key(x)];return `<button class="mp ${!r?"u":r.b>=5?"g":r.b>=3?"b":"y"}" data-s="${x[0]}">${x[0]}</button>`}).join("")}</div><p class="note">Abu-abu: belum dikenal · kuning: masih lemah · biru: hampir hafal · hijau: hafal.</p>`}
+ $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 8px">Penguasaan ${NAMES[mode]}</div><div class="bar"><i style="width:${s.pct}%"></i></div><p style="margin:6px 0 14px"><b style="font-size:1.7rem">${s.pct}%</b> <span class="note">· ${s.mast}/${s.n} hafal · ${s.nw} baru · ${s.due} perlu diulang</span></p><button class="on" id="sgo" style="width:100%;padding:14px">[[zap]] Mulai latihan pintar</button>${canPick()?`<p class="note" style="margin:12px 0 0">Huruf latihan: <b>${SEL[mode].size?SEL[mode].size+" huruf pilihanmu":"semua"}</b> <button class="hint" id="sp">Pilih huruf</button></p>`:""}<p class="note" style="margin:12px 0 0">[[flame]] Runtutan: ${st} hari. Sistem memilih huruf yang paling perlu dilatih, mengenalkan huruf baru sedikit demi sedikit, dan mengulang yang salah.</p></div><div class="lbl">Peta penguasaan (tap untuk dengar)</div><div class="map ${(mode=="w"||mode=="p")?"wide":""}">${items().map(x=>{const r=m[key(x)];return `<button class="mp ${!r?"u":r.b>=5?"g":r.b>=3?"b":"y"}" data-s="${x[0]}">${x[0]}</button>`}).join("")}</div><p class="note">Abu-abu: belum dikenal · kuning: masih lemah · biru: hampir hafal · hijau: hafal.</p>`}
 function sStart(){
- const m=MX(),it=items(),n=Date.now();
+ const m=MX(),it=canPick()&&SEL[mode].size?picked():items(),n=Date.now();
  const seen=it.filter(x=>m[key(x)]),nw=it.filter(x=>!m[key(x)]);
  const due=seen.filter(x=>m[key(x)].d<=n).sort((a,b)=>m[key(a)].b-m[key(b)].b);
  const intro=nw.slice(0,due.length<4?3:due.length<8?2:1),rest=due.slice(0,12-intro.length);
@@ -337,7 +347,7 @@ let F=null,fl=false;
 const TRIK={v:`<div class="trik"><b>Rumus mudah vokal:</b><br>• Garis <b>tegak</b> ㅣ: tanda ke <b>kanan</b> = a (ㅏ), ke <b>kiri</b> = eo (ㅓ).<br>• Garis <b>datar</b> ㅡ: tanda ke <b>atas</b> = o (ㅗ), ke <b>bawah</b> = u (ㅜ).<br>• <b>Dua tanda</b> = ada bunyi “y”: ㅑ ya, ㅕ yeo, ㅛ yo, ㅠ yu.<br>• ㅡ = eu, ㅣ = i. Hafal 4 dasar dulu: ㅏ ㅓ ㅗ ㅜ, lalu tambahkan versi “y”-nya.</div>`,c:`<div class="trik"><b>Kelompok pasangan:</b> ㄱ/ㅋ (g/k) · ㄷ/ㅌ (d/t) · ㅂ/ㅍ (b/p) · ㅈ/ㅊ (j/ch). Huruf dengan garis tambahan = bunyi lebih kuat.</div>`,s:`<div class="trik">Rumus: konsonan + vokal. ㅇ di awal tidak berbunyi: 아 = a, 오 = o.</div>`};
 Object.assign(TRIK,{r:`<div class="trik"><b>Aturan batchim:</b> hanya ada <b>7 bunyi</b> akhir: k (ㄱ ㅋ) · n (ㄴ) · t (ㄷ ㅅ ㅈ ㅊ ㅌ ㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂ ㅍ) · ng (ㅇ). Hafalkan kelompoknya, bukan satu per satu.</div>`,p:`<div class="trik"><b>Ayo membaca!</b> Kata-kata dari halaman 5 PPT beserta gambarnya. Lihat gambar, baca katanya, lalu uji dengan tes “Gambar → Kata”.</div>`,g:`<div class="trik"><b>Vokal gabungan</b> = dua vokal digabung. Kuncinya: <b>ㅣ</b> di belakang → ㅏ+ㅣ=ㅐ, ㅓ+ㅣ=ㅔ. Awalan <b>ㅗ/ㅜ</b> → bunyi “w”: ㅘ wa, ㅝ wo, ㅟ wi.</div>`,k:`<div class="trik"><b>Konsonan ganda</b> = huruf kembar yang diucapkan lebih <b>tegang/ditekan</b>, tanpa hembusan napas: ㄲ ㄸ ㅃ ㅆ ㅉ.</div>`,b:`<div class="trik"><b>Batchim</b> = konsonan akhir. Hanya ada <b>7 bunyi</b>: k (ㄱㅋ) · n (ㄴ) · t (ㄷㅅㅈㅊㅌㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂㅍ) · ng (ㅇ).</div>`,w:`<div class="trik"><b>Kosakata</b> dari buku kelasmu. Latih membaca, lalu tebak artinya. Gunakan soal “Bacaan → Huruf” untuk melatih mengenali tulisan Korea dari artinya.</div>`});
 function wk(k,ok){upd(mode+":"+k,ok);try{const w=JSON.parse(localStorage.getItem("wk")||"{}");w[k]=Math.max(0,(w[k]||0)+(ok?-1:2));localStorage.setItem("wk",JSON.stringify(w))}catch(e){}}
-function route(){stopAll();Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():tab=="kata"?kHome():test()}
+function route(){stopAll();MIR=false;Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():tab=="kata"?kHome():test()}
 function card(){
  if(!F&&canPick()){picker("card");return}
  if(!F)F=sh(items().slice());
@@ -352,20 +362,26 @@ const JUNG=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","�
 const RV={},RC={};
 V.forEach(v=>RV[v[0]]=v[2]);EX.g.forEach(g=>RV[g[0]]=g[1]);C.forEach(c=>RC[c[0]]=c[2]);EX.k.forEach(k=>RC[k[0]]=k[1]);
 // uraikan kata (hanya suku kata tanpa batchim) menjadi huruf + bacaan otomatis
-function dec(w){let rom="",j=new Set(),sy=[];for(const ch of w){const c=ch.charCodeAt(0)-0xAC00;if(c<0||c>11171)return null;if(c%28)return null;const co=CHO[Math.floor(c/588)],vo=JUNG[Math.floor(c/28)%21];if(!(vo in RV)||!(co in RC))return null;rom+=RC[co]+RV[vo];j.add(co);j.add(vo);sy.push([ch,co,vo])}return{rom,j:[...j],sy}}
-const WL="가수:penyanyi|고기:daging|나무:pohon|나비:kupu-kupu|다리:kaki / jembatan|모자:topi|휴지:tisu|바나나:pisang|토마토:tomat|버스:bus|기차:kereta api|아기:bayi|여자:perempuan|오리:bebek|우유:susu|커피:kopi|치마:rok|포도:anggur|피아노:piano|피자:pizza|아버지:ayah|어머니:ibu|나라:negara|바지:celana|라디오:radio|소:sapi|여우:rubah|우리:kita|나:saya|너:kamu|이:gigi / dua|오:lima|하나:satu|가지:terong|아이:anak|고구마:ubi|사자:singa|도시:kota|파리:lalat|하마:kuda nil|주스:jus|코코아:kokoa|타조:burung unta|기타:gitar|여기:di sini|거기:di situ|저기:di sana|머리:kepala|허리:pinggang|다시:lagi|지도:peta|두부:tahu|자주:sering|차:teh / mobil|치즈:keju|고추:cabai|부자:orang kaya|이마:dahi|어부:nelayan|거미:laba-laba|소파:sofa|시소:jungkat-jungkit|포크:garpu|사다리:tangga lipat|요리:masakan|조카:keponakan|모기:nyamuk|어제:kemarin|야구:bisbol|이유:alasan|개:anjing|새:burung|게:kepiting|배:perut / kapal|가게:toko|시계:jam|쥐:tikus|귀:telinga|사과:apel|의사:dokter|회사:perusahaan|뭐:apa|왜:mengapa|돼지:babi|매미:jangkrik|모래:pasir|세수:cuci muka|네:ya|제주:Jeju|얘기:cerita|의자:kursi|위:atas|쉬다:beristirahat|최고:terbaik|대나무:bambu|아빠:ayah (panggilan)|오빠:kakak laki-laki|토끼:kelinci|뿌리:akar|쓰레기:sampah|아저씨:paman|찌개:sup / rebusan|꼬리:ekor|어깨:bahu|아까:tadi";
-const WB=WL.split("|").map(x=>{const p=x.split(":"),d=dec(p[0]);return d?{ko:p[0],id:p[1],rom:d.rom,j:d.j,sy:d.sy}:null}).filter(Boolean);
-const KMODES=["v","c","s","g","k"];
+const JONG=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const FO={"ㄱ":"k","ㅋ":"k","ㄴ":"n","ㄷ":"t","ㅅ":"t","ㅈ":"t","ㅊ":"t","ㅌ":"t","ㅎ":"t","ㄹ":"l","ㅁ":"m","ㅂ":"p","ㅍ":"p","ㅇ":"ng"};
+const FINS=["k","n","t","l","m","p","ng"];
+// uraikan kata: huruf awal + vokal + batchim (7 bunyi akhir); kata dengan perubahan bunyi sambung (batchim + ㅇ) dilewati
+function dec(w){let rom="",j=new Set(),sy=[],fj=[];for(const ch of w){const c=ch.charCodeAt(0)-0xAC00;if(c<0||c>11171)return null;const co=CHO[Math.floor(c/588)],vo=JUNG[Math.floor(c/28)%21],fl=JONG[c%28];if(!(vo in RV)||!(co in RC))return null;if(fl&&!(fl in FO))return null;rom+=RC[co]+RV[vo]+(fl?FO[fl]:"");j.add(co);j.add(vo);if(fl){j.add(fl);fj.push(fl)}sy.push([ch,co,vo,fl])}for(let i=0;i<sy.length-1;i++)if(sy[i][3]&&sy[i][3]!="ㅇ"&&sy[i+1][1]=="ㅇ")return null;return{rom,j:[...j],sy,fj:[...new Set(fj)]}}
+const WL="가수:penyanyi|고기:daging|나무:pohon|나비:kupu-kupu|다리:kaki / jembatan|모자:topi|휴지:tisu|바나나:pisang|토마토:tomat|버스:bus|기차:kereta api|아기:bayi|여자:perempuan|오리:bebek|우유:susu|커피:kopi|치마:rok|포도:anggur|피아노:piano|피자:pizza|아버지:ayah|어머니:ibu|나라:negara|바지:celana|라디오:radio|소:sapi|여우:rubah|우리:kita|나:saya|너:kamu|이:gigi / dua|오:lima|하나:satu|가지:terong|아이:anak|고구마:ubi|사자:singa|도시:kota|파리:lalat|하마:kuda nil|주스:jus|코코아:kokoa|타조:burung unta|기타:gitar|여기:di sini|거기:di situ|저기:di sana|머리:kepala|허리:pinggang|다시:lagi|지도:peta|두부:tahu|자주:sering|차:teh / mobil|치즈:keju|고추:cabai|부자:orang kaya|이마:dahi|어부:nelayan|거미:laba-laba|소파:sofa|시소:jungkat-jungkit|포크:garpu|사다리:tangga lipat|요리:masakan|조카:keponakan|모기:nyamuk|어제:kemarin|야구:bisbol|이유:alasan|개:anjing|새:burung|게:kepiting|배:perut / kapal|가게:toko|시계:jam|쥐:tikus|귀:telinga|사과:apel|의사:dokter|회사:perusahaan|뭐:apa|왜:mengapa|돼지:babi|매미:jangkrik|모래:pasir|세수:cuci muka|네:ya|제주:Jeju|얘기:cerita|의자:kursi|위:atas|쉬다:beristirahat|최고:terbaik|대나무:bambu|아빠:ayah (panggilan)|오빠:kakak laki-laki|토끼:kelinci|뿌리:akar|쓰레기:sampah|아저씨:paman|찌개:sup / rebusan|꼬리:ekor|어깨:bahu|아까:tadi|학교:sekolah|친구:teman|한국:Korea|중국:Cina|미국:Amerika|일본:Jepang|사람:orang|물:air|밥:nasi|집:rumah|문:pintu|손:tangan|발:kaki|돈:uang|길:jalan|빵:roti|책상:meja|공책:buku tulis|가방:tas|연필:pensil|컴퓨터:komputer|학생:siswa|선생님:guru|공부:belajar|영화:film|김치:kimchi|불고기:bulgogi|냉장고:kulkas|세탁기:mesin cuci|침대:tempat tidur|창문:jendela|열쇠:kunci|번호:nomor|종이:kertas|수박:semangka|딸기:stroberi|딸:anak perempuan|쌀:beras|쌍둥이:kembar|날씨:cuaca|산:gunung|강:sungai|꽃:bunga|밤:malam|낮:siang|눈:mata / salju|입:mulut|목:leher|팔:lengan|얼굴:wajah|안녕:halo / selamat tinggal|감사:terima kasih|우산:payung|신발:sepatu|안경:kacamata|지갑:dompet|가족:keluarga|음식:makanan|은행:bank|병원:rumah sakit|도서관:perpustakaan|공원:taman|운동:olahraga|달:bulan|별:bintang|불:api|곰:beruang|양파:bawang bombay|당근:wortel";
+const WB=WL.split("|").map(x=>{const p=x.split(":"),d=dec(p[0]);return d?{ko:p[0],id:p[1],rom:d.rom,j:d.j,sy:d.sy,fj:d.fj,b:d.fj.length>0}:null}).filter(Boolean);
+const KMODES=["v","c","m","s","g","k","b","r"];
 let KM=null;
-const hasL=(w,l)=>w.j.includes(l)||w.ko.includes(l);
-const lab=()=>mode=="s"?"suku kata":NAMES[mode].toLowerCase();
-const brk=w=>w.sy.map(s=>`${s[0]} = ${s[1]=="ㅇ"?"ㅇ (diam)":s[1]+" ("+RC[s[1]]+")"} + ${s[2]} (${RV[s[2]]})`).join(" · ");
+const isSyl=l=>{const c=l.charCodeAt(0)-0xAC00;return c>=0&&c<11172};
+function hasL(w,l){if(mode=="r")return w.fj.includes(l);if(isSyl(l)){const c=l.charCodeAt(0)-0xAC00;return c%28?w.fj.includes(JONG[c%28]):w.ko.includes(l)}return w.j.includes(l)}
+const okw=w=>(mode=="b"||mode=="r")?w.b:mode=="m"?true:!w.b;
+const lab=()=>mode=="s"?"suku kata":mode=="m"?"huruf":(mode=="b"||mode=="r")?"batchim":NAMES[mode].toLowerCase();
+const brk=w=>w.sy.map(s=>`${s[0]} = ${s[1]=="ㅇ"?"ㅇ (diam)":s[1]+" ("+RC[s[1]]+")"} + ${s[2]} (${RV[s[2]]})${s[3]?" + batchim "+s[3]+" ["+FO[s[3]]+"]":""}`).join(" · ");
 // pilihan bacaan yang mirip (salah satu huruf diganti) supaya benar-benar menguji huruf
-function variants(w,n){const out=new Set();let g=0;while(out.size<n&&g++<80){const k=Math.floor(Math.random()*w.sy.length);const r=w.sy.map((s,i)=>i!=k?RC[s[1]]+RV[s[2]]:(Math.random()<.5?RC[s[1]]+RV[V[Math.floor(Math.random()*V.length)][0]]:RC[C[Math.floor(Math.random()*C.length)][0]]+RV[s[2]])).join("");if(r!=w.rom)out.add(r)}return[...out]}
+function variants(w,n){const out=new Set(),fo=s=>s[3]?FO[s[3]]:"";let g=0;while(out.size<n&&g++<80){const k=Math.floor(Math.random()*w.sy.length);const r=w.sy.map((s,i)=>{if(i!=k)return RC[s[1]]+RV[s[2]]+fo(s);const m=Math.random();if(s[3]&&m<.4)return RC[s[1]]+RV[s[2]]+FINS[Math.floor(Math.random()*7)];return m<.7?RC[s[1]]+RV[V[Math.floor(Math.random()*V.length)][0]]+fo(s):RC[C[Math.floor(Math.random()*C.length)][0]]+RV[s[2]]+fo(s)}).join("");if(r!=w.rom)out.add(r)}return[...out]}
 // kata yang dipakai: mengandung huruf yang dilatih (huruf pilihan kalau ada)
-function kPoolW(){const its=(canPick()&&SEL[mode].size)?picked():items();let p=WB.filter(w=>its.some(x=>hasL(w,x[0])));if(p.length<4)p=WB.filter(w=>items().some(x=>hasL(w,x[0])));return p}
+function kPoolW(){const its=(canPick()&&SEL[mode].size)?picked():items();let p=WB.filter(w=>okw(w)&&its.some(x=>hasL(w,x[0])));if(p.length<4)p=WB.filter(w=>okw(w)&&items().some(x=>hasL(w,x[0])));return p}
 function kMake(w,t){
- const its=items(),oth=WB.filter(y=>y!==w);let h,o;
+ const its=items().filter(x=>mode!="m"||x[0].charCodeAt(0)<0xAC00),oth0=WB.filter(y=>y!==w),oth1=oth0.filter(okw),oth=oth1.length>=6?oth1:oth0;let h,o;
  const big=`<div class="big" style="font-size:3.4rem;word-break:keep-all">${w.ko}</div>`;
  if(t=="find"){
   const cand=its.filter(x=>x[0]!="ㅇ"&&hasL(w,x[0])),bad=sh(its.filter(x=>!hasL(w,x[0]))).slice(0,3);
@@ -373,6 +389,11 @@ function kMake(w,t){
    const foc=canPick()&&SEL[mode].size?cand.filter(x=>SEL[mode].has(x[0])):[],src=foc.length?foc:cand,c=src[Math.floor(Math.random()*src.length)];
    return{h:big+`<div class="note">Pilih ${lab()} yang ada di kata ini</div>`,o:sh([c,...bad]).map(x=>({t:x[0],ok:x[0]==c[0]}))}
   }
+  t="read"}
+ if(t=="fin"){
+  const bs=w.sy.filter(s=>s[3]);
+  if(bs.length){const sl=bs[Math.floor(Math.random()*bs.length)],c=FO[sl[3]],shown=w.sy.map(s=>s===sl?`<span style="color:var(--ac)">${s[0]}</span>`:s[0]).join("");
+   return{h:`<div class="big" style="font-size:3.4rem;word-break:keep-all">${shown}</div><div class="note">Suku kata berwarna punya batchim. Bunyi akhirnya?</div>`,o:sh([c,...sh(FINS.filter(x=>x!=c)).slice(0,3)]).map(x=>({t:x,ok:x==c}))}}
   t="read"}
  if(t=="meaning"){
   const ids=[...new Set(sh(oth.map(y=>y.id)).filter(i=>i!=w.id))].slice(0,3);
@@ -383,12 +404,12 @@ function kMake(w,t){
  return{h:big+`<div class="note">Bagaimana cara membacanya?</div>`,o:sh([w.rom,...variants(w,3)]).map(x=>({t:x,ok:x==w.rom}))}
 }
 function kHome(){
- if(!KMODES.includes(mode)){$("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 6px">Soal kata sehari-hari</div><p class="note" style="margin:0">Tersedia untuk materi <b>Vokal, Konsonan, Cara Baca, Vokal Gabungan,</b> dan <b>Konsonan Ganda</b>. Pilih salah satunya di atas.</p></div>`;return}
+ if(!KMODES.includes(mode)){$("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 6px">Soal kata sehari-hari</div><p class="note" style="margin:0">Tersedia untuk semua materi huruf (Vokal sampai Aturan Batchim). Untuk Ayo Membaca dan Kosakata, pakai tab Tes.</p></div>`;return}
  const p=kPoolW(),foc=canPick()&&SEL[mode].size;
  $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 6px">Soal kata sehari-hari · ${NAMES[mode]}</div><p style="margin:0 0 10px">Latih ${lab()} lewat kata yang sering dipakai. Kata dipilih dari huruf yang kamu latih: ${foc?`<b>${[...SEL[mode]].join(" ")}</b>`:"semua "+lab()}.</p><p class="note" style="margin:0 0 12px">Tersedia <b>${p.length}</b> kata. Jenis soal: baca kata, cari huruf di dalam kata, arti kata, dan tebak tulisan dari bacaan. Suara hanya berbunyi setelah kamu menjawab.</p><button class="on" id="kgo" style="width:100%;padding:14px" ${p.length?"":"disabled"}>[[zap]] Mulai (${Math.min(10,p.length)} soal acak)</button>${canPick()?`<button id="kpick" style="width:100%;margin-top:8px;padding:12px">Pilih huruf fokus</button>`:""}</div>`}
 function kStart(){
  const p=kPoolW();if(!p.length)return;
- const types=mode=="s"?["read","meaning","hangul"]:["read","find","meaning","hangul"];
+ const types=(mode=="b"||mode=="r")?["fin","read","meaning","hangul"]:mode=="m"?["read","find","fin","meaning","hangul"]:mode=="s"?["read","meaning","hangul"]:["read","find","meaning","hangul"];
  KM={q:sh(p).slice(0,10).map((w,i)=>({w,t:types[i%types.length]})),i:0,ok:0,n:0,bad:[],fb:0};kShow()}
 function kBar(){return `<div class="bar"><i style="width:${KM.i/KM.q.length*100}%"></i></div><div class="note" style="margin-bottom:8px">Soal ${KM.i+1} dari ${KM.q.length}</div>`}
 function kShow(){
@@ -409,6 +430,16 @@ function kEnd(){
  const acc=KM.n?Math.round(KM.ok/KM.n*100):0,bad=[...new Map(KM.bad.map(w=>[w.ko,w])).values()];
  $("app").innerHTML=`<div class="q"><div class="res">${acc>=85?"[[trophy]]":acc>=60?"[[star]]":"[[target]]"}</div><h2 style="margin:0">Akurasi ${acc}%</h2>${bad.length?`<div class="lbl">Kata yang perlu diulang (tap untuk dengar)</div><div class="map wide">${bad.map(w=>`<button class="mp y" data-s="${w.ko}">${w.ko}<br><small>${w.id}</small></button>`).join("")}</div>`:`<p>Semua jawabanmu benar!</p>`}<p><button class="on" id="kgo" style="padding:13px 24px">Latihan lagi</button>${canPick()?` <button id="kpick" style="padding:13px 24px">Pilih huruf fokus</button>`:""}</p></div>`;
 }
+EX.m=[...V.map(x=>[x[0],x[1],x[3]]),...C.map(x=>[x[0],x[1],x[3]]),...EX.g,...EX.k,...EX.b];
+TRIK.m=`<div class="trik"><b>Campuran:</b> semua huruf dalam satu tempat: <b>vokal, konsonan, vokal gabungan, konsonan ganda,</b> dan <b>batchim</b>. Di Kartu, Tes, dan Pintar kamu bisa memilih huruf dari grup mana saja, lalu soal diacak dari huruf pilihanmu saja.</div>`;
+IC.mute=ico('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>');
+let MUTE=false,RI=1,MIR=false;const RT=[.55,.8,1.05],RN=["Lambat","Normal","Cepat"];
+try{const o=JSON.parse(localStorage.getItem("sndset")||"{}");MUTE=!!o.m;RI=[0,1,2].includes(o.r)?o.r:1}catch(e){}
+function svSnd(){try{localStorage.setItem("sndset",JSON.stringify({m:MUTE,r:RI}))}catch(e){}}
+// pasangan huruf yang sering tertukar
+const MIRG=[["ㅏ","ㅑ","ㅓ","ㅕ"],["ㅗ","ㅛ","ㅜ","ㅠ"],["ㅓ","ㅗ"],["ㅏ","ㅓ"],["ㅡ","ㅜ","ㅣ"],["ㅐ","ㅔ"],["ㅒ","ㅖ"],["ㅙ","ㅞ","ㅚ"],["ㅟ","ㅢ"],["ㄱ","ㅋ","ㄲ"],["ㄷ","ㅌ","ㄸ"],["ㅂ","ㅍ","ㅃ"],["ㅈ","ㅊ","ㅉ"],["ㅅ","ㅆ"],["ㅁ","ㅂ"],["ㅇ","ㅎ"],["ㄴ","ㄹ"],["ㅈ","ㅅ"],["ㅊ","ㅋ"]];
+const mirOf=l=>[...new Set(MIRG.filter(g=>g.includes(l)).flat())].filter(x=>x!=l);
+const mirOK=()=>["v","c","m","g","k"].includes(mode);
 let AT=[];
 function stopAll(){AT.forEach(clearTimeout);AT=[];clearTimeout(SW);try{speechSynthesis.cancel()}catch(e){}}
 /* ===== IZIN SUARA: buka kunci audio browser saat sentuhan pertama ===== */
