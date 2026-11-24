@@ -144,10 +144,10 @@ main{max-width:min(720px,100%)}
 </head>
 <body>
 <main>
-<h1>한글 Belajar Hangul</h1><p class="note" style="margin-top:-6px">Mengikuti materi “Dasar B Korea 2026”: Hangul (1) vokal, konsonan, suku kata · Hangul (2) batchim, vokal gabungan, baca, tulis &amp; angka · Hangul (3) konsonan ganda · kosakata.</p>
-<div id="vs" class="trik"></div><div class="lbl">Pilih materi</div>
+<h1>한글 Belajar Hangul</h1><p class="note" style="margin-top:-6px">Mulai dari <b>Huruf</b>, lanjut <b>Suku Kata</b>, <b>Kata</b>, lalu <b>Angka</b>. Di tiap materi ikuti langkah 1 → 4.</p>
+<div id="vs" class="trik"></div><div class="lbl">Materi</div>
 <div class="seg" id="modes"></div>
-<div class="lbl">Pilih kegiatan</div>
+<div class="lbl">Langkah belajar</div>
 <div class="seg" id="tabs"></div>
 <div id="app" style="margin-top:14px"></div>
 </main>
@@ -178,10 +178,12 @@ const V=[["ㅏ","a","a","Tanda ke kanan → “a”"],["ㅑ","ya","ya","Dua tand
 const C=[["ㄱ","g","g","Seperti huruf “7” terbalik (g)"],["ㄴ","n","n","Seperti huruf L tidur (n)"],["ㄷ","d","d","Seperti kotak terbuka (d)"],["ㄹ","r/l","r","Seperti angka 2 (r/l)"],["ㅁ","m","m","Berbentuk kotak (m)"],["ㅂ","b","b","Seperti ember (b)"],["ㅅ","s","s","Seperti atap/gunung (s)"],["ㅇ","ng","","Lingkaran: diam di awal, “ng” di akhir"],["ㅈ","j","j","Seperti ㅅ dengan topi (j)"],["ㅊ","ch","ch","ㅈ + topi lagi (ch)"],["ㅋ","k","k","ㄱ + garis tengah (k tebal)"],["ㅌ","t","t","ㄷ + garis tengah (t tebal)"],["ㅍ","p","p","Seperti pintu/gerbang (p)"],["ㅎ","h","h","Topi + lingkaran (h)"]];
 const LI=[0,2,3,5,6,7,9,11,12,14,15,16,17,18],VI=[0,2,4,6,8,12,13,17,18,20];
 const S=[];C.forEach((c,i)=>V.forEach((v,j)=>S.push([String.fromCharCode(0xAC00+(LI[i]*21+VI[j])*28),c[2]+v[2],c[0]+" ("+(c[2]||"–")+") + "+v[0]+" ("+v[2]+")"+(c[2]?"":" → ㅇ diam, baca vokalnya saja")])));
-const NAMES={v:"Vokal",c:"Konsonan",m:"Campuran",s:"Cara Baca",b:"Batchim",r:"Aturan Batchim",g:"Vokal Gabungan",k:"Konsonan Ganda",p:"Ayo Membaca",q:"Baca (Hal. 20)",t:"Tulis (Hal. 21)",u:"Tulis (Hal. 23)",x:"Baca (Hal. 24)",n:"Angka Sino (Hal. 16)",o:"Angka Asli Korea",w:"Kosakata"};
-let mode="v",tab="smart",dir=0,Q=[],qi=0,score=0,done=false;
+const NAMES={v:"Vokal",c:"Konsonan",g:"Vokal Gabungan",k:"Konsonan Ganda",m:"Semua Huruf",s:"Cara Baca",b:"Batchim",r:"Aturan Batchim",t:"Latihan Tulis",w:"Kosakata",a:"Angka"};
+const GROUPS=[["Huruf",["v","c","g","k","m"]],["Suku Kata",["s","b","r","t"]],["Kata",["w"]],["Angka",["a"]]],LASTM={},gi=m=>GROUPS.findIndex(g=>g[1].includes(m));
+let TK=0;
+let mode="v",tab="learn",dir=0,Q=[],qi=0,score=0,done=false;
 const $=id=>document.getElementById(id);
-const WM=()=>["w","p","q","x","n","o"].includes(mode);
+const WM=()=>["w","a"].includes(mode);
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 const items=()=>mode=="v"?V.map(x=>[x[0],x[1],x[3]]):mode=="c"?C.map(x=>[x[0],x[1],x[3]]):mode=="s"?S:EX[mode];
 const VI2={"ㅏ":0,"ㅐ":1,"ㅑ":2,"ㅒ":3,"ㅓ":4,"ㅔ":5,"ㅕ":6,"ㅖ":7,"ㅗ":8,"ㅘ":9,"ㅙ":10,"ㅚ":11,"ㅛ":12,"ㅜ":13,"ㅝ":14,"ㅞ":15,"ㅟ":16,"ㅠ":17,"ㅡ":18,"ㅢ":19,"ㅣ":20};
@@ -190,24 +192,24 @@ function jm(t){if(t in VI2)return String.fromCharCode(0xAC00+(11*21+VI2[t])*28);
 let KO=false;
 function stat(){const e=$("vs");if(!e)return;e.innerHTML=(!window.speechSynthesis?"[[no]] Browser ini tidak mendukung suara. Coba buka dengan Chrome.":KO?"[[ok]] Suara Korea ditemukan di perangkatmu.":"[[alert]] Suara Korea tidak ditemukan. Sementara dipakai suara Indonesia yang membaca ejaan latin (perkiraan saja). Untuk suara asli, pasang suara Korean di pengaturan teks-ke-suara perangkatmu.")+" <button id=\"tv\">[[sound]] Tes suara</button> <button id=\"tmu\">"+(MUTE?"[[mute]] Suara mati":"[[sound]] Suara hidup")+"</button> <button id=\"trt\">Kecepatan: "+RN[RI]+"</button>"}
 function chk(){try{KO=speechSynthesis.getVoices().some(v=>v.lang.toLowerCase().replace("_","-").startsWith("ko"))}catch(e){KO=false}stat()}
-function fb(t){const wd=WB.find(y=>y.ko==t);if(wd)return wd.rom.replace(/eo/g,"o").replace(/eu/g,"e");const L=[V.map(x=>[x[0],x[1]]),C.map(x=>[x[0],x[2]+"a"]),S,EX.g,EX.k,EX.b,EX.t,EX.u,EX.n,EX.o];for(const l of L){const x=l.find(y=>y[0]==t);if(x)return x[1].replace(/eo/g,"o").replace(/eu/g,"e")}return null}
+function fb(t){const wd=WB.find(y=>y.ko==t);if(wd)return wd.rom.replace(/eo/g,"o").replace(/eu/g,"e");const L=[V.map(x=>[x[0],x[1]]),C.map(x=>[x[0],x[2]+"a"]),S,EX.g,EX.k,EX.b,EX.t,EX.a];for(const l of L){const x=l.find(y=>y[0]==t);if(x)return x[1].replace(/eo/g,"o").replace(/eu/g,"e")}return null}
 let SW;function say(t){try{if(!canSpeak()||MUTE)return;if(mode=="r"&&FI[t])t=String.fromCharCode(0xAC00+FI[t]);const f=KO?null:fb(t);const u=new SpeechSynthesisUtterance(f||jm(t));let go=false;u.lang=f?"id-ID":"ko-KR";u.rate=RT[RI];u.onstart=()=>{go=true};speechSynthesis.cancel();setTimeout(()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}},80);clearTimeout(SW);SW=setTimeout(()=>{if(!go){const e=$("vs");if(e)e.innerHTML="[[no]] Suara tidak berhasil diputar di sini. Buka link halaman ini langsung di Chrome atau Safari (bukan di dalam aplikasi Claude/WhatsApp), lalu cek volume media dan mode senyap. <button id=\"tv\">[[sound]] Coba lagi</button>"}},1800)}catch(e){stat()}}
 function head(){
- $("modes").innerHTML=Object.keys(NAMES).map(k=>`<button class="${k==mode?"on":""}" data-m="${k}">${NAMES[k]}</button>`).join("");
- $("tabs").innerHTML=[["learn","[[book]] Belajar"],["smart","[[zap]] Pintar"],["card","[[cards]] Kartu"],["test","[[edit]] Tes"],["kata","[[words]] Kata"]].map(t=>`<button class="${t[0]==tab?"on":""}" data-t="${t[0]}">${t[1]}</button>`).join("");
+ {const G=gi(mode),ms=GROUPS[G][1];$("modes").innerHTML=`<div class="seg" style="width:100%">${GROUPS.map((g,i)=>`<button class="${i==G?"on":""}" data-g="${i}">${g[0]}</button>`).join("")}</div>${ms.length>1?`<div class="seg" style="width:100%;margin-top:6px">${ms.map(k=>`<button class="${k==mode?"on":""}" data-m="${k}">${NAMES[k]}</button>`).join("")}</div>`:""}`}
+ $("tabs").innerHTML=[["learn","1 Belajar"],["smart","2 Latihan"],["card","3 Kartu"],["test","4 Tes"]].map(t=>`<button class="${t[0]==tab?"on":""}" data-t="${t[0]}">${t[1]}</button>`).join("");
 }
 function learn(){
  let h="";
  if(mode=="t"){
   const rows=TV.map(v=>{const sy=tsy("ㄱ",v[0]);return `<tr><th>${sy}</th>${TC.map(c=>{const z=tsy(c[0],v[0]);return `<td data-s="${z}"><b>${z}</b></td>`}).join("")}</tr>`}).join("");
-  h=`<p class="note">Latihan menulis halaman 21: ganti ㄱ pada suku kata di kiri dengan tiap konsonan di atas. Tulis dulu di buku, lalu tap sel untuk melihat jawaban dan mendengar bunyinya.</p><p><button id="thid">Sembunyikan jawaban</button> <button id="tall">Tampilkan semua</button></p><div class="tw wt"><table><tr><th></th>${TC.map(c=>`<th>${c[0]}<br>${c[1]||"–"}</th>`).join("")}</tr>${rows}</table></div><div class="lbl">Kartu per suku kata</div><div class="grid">${items().map(x=>`<div class="c" data-s="${x[0]}"><b>${x[0]}</b><span>${x[1]||"–"} [[sound]]</span></div>`).join("")}</div>`;
+  h=`<p class="note">Latihan menulis halaman 21: ganti ㄱ pada suku kata di kiri dengan tiap konsonan di atas. Tulis dulu di buku, lalu tap sel untuk melihat jawaban dan mendengar bunyinya.</p><p><button id="thid">Sembunyikan jawaban</button> <button id="tall">Tampilkan semua</button></p><div class="tw wt"><table><tr><th></th>${TC.map(c=>`<th>${c[0]}<br>${c[1]||"–"}</th>`).join("")}</tr>${rows}</table></div>`;
  }else if(mode=="s"){
   h=`<p class="note">Tap sel untuk mendengar bunyinya. Baris = konsonan, kolom = vokal. Cukup hafal 14 konsonan + 10 vokal, lalu gabungkan!</p><div class="tw"><table><tr><th></th>${V.map(v=>`<th>${v[0]}<br>${v[2]}</th>`).join("")}</tr>${C.map((c,i)=>`<tr><th>${c[0]}<br>${c[2]||"–"}</th>${V.map((v,j)=>{const s=S[i*10+j];return `<td data-s="${s[0]}"><b>${s[0]}</b>${s[1]}</td>`}).join("")}</tr>`).join("")}</table></div>`;
  }else{
   h=`<p class="note">Tap kartu untuk mendengar bunyinya ([[sound]]). Jika tidak ada suara, aktifkan suara Korea di pengaturan teks-ke-suara perangkatmu.</p><p><button class="on" id="all">[[sound]] Putar semua berurutan</button></p><div class="grid">${items().map(x=>`<div class="c" data-s="${x[0]}">${IMG[x[0]]?`<img src="${IMG[x[0]]}" alt="${x[1]}">`:""}<b style="${WM()?"font-size:1.4rem;word-break:keep-all":""}">${x[0]}</b><span>${x[1]} [[sound]]</span><small>${x[2]}</small><div class="mt"><i style="width:${mb(x)}%"></i></div></div>`).join("")}</div>`;
  }
- if(mode=="u"){const mk=(cs)=>`<div class="tw wt"><table><tr><th></th>${UV.map(v=>`<th>${v[0]}<br>${v[2]}</th>`).join("")}</tr>${cs.map(c=>`<tr><th>${c[0]}<br>${c[1]}</th>${UV.map(v=>{const z=tsy(c[0],v[0]);return `<td data-s="${z}"><b>${z}</b></td>`}).join("")}</tr>`).join("")}</table></div>`;h=`<p class="note">Latihan menulis halaman 23: tulis suku kata dari konsonan di kiri + vokal di atas. Tap sel untuk melihat jawaban dan mendengar bunyinya.</p><p><button id="thid">Sembunyikan jawaban</button> <button id="tall">Tampilkan semua</button></p>`+mk(UC1)+`<div style="height:14px"></div>`+mk(UC2)+`<div class="lbl">Kartu per suku kata</div>`+h}
- if(mode=="n"||mode=="o"){h=`<p class="note">Halaman 16: angka 1–10. Sino-Korea (일, 이, 삼 …) dipakai untuk nomor, tanggal, uang. Angka asli (하나, 둘, 셋 …) dipakai untuk menghitung benda. Tap sel untuk mendengar; sembunyikan jawaban untuk latihan menulis.</p><p><button id="thid">Sembunyikan jawaban</button> <button id="tall">Tampilkan semua</button></p><div class="tw wt"><table><tr><th>Angka</th><th>Sino-Korea</th><th>Asli Korea</th></tr><tr><th>0</th><td data-s="영"><b>영</b>yeong</td><td data-s="공"><b>공</b>gong</td></tr>${NNA.map((a,i)=>`<tr><th>${i+1}</th><td data-s="${NSI[i+2][0]}"><b>${NSI[i+2][0]}</b>${NSI[i+2][1]}</td><td data-s="${a[0]}"><b>${a[0]}</b>${a[1]}</td></tr>`).join("")}</table></div><div class="lbl">Kartu</div>`+h}
+ if(mode=="t"){const mk=(cs)=>`<div class="tw wt"><table><tr><th></th>${UV.map(v=>`<th>${v[0]}<br>${v[2]}</th>`).join("")}</tr>${cs.map(c=>`<tr><th>${c[0]}<br>${c[1]}</th>${UV.map(v=>{const z=tsy(c[0],v[0]);return `<td data-s="${z}"><b>${z}</b></td>`}).join("")}</tr>`).join("")}</table></div>`;h=h.replace("Latihan menulis halaman 21:","Latihan menulis. Tabel 1 (halaman 21): ")+`<div class="lbl">Tabel 2 (halaman 23): konsonan ganda &amp; tebal × vokal dasar</div>`+mk(UC1)+`<div style="height:14px"></div>`+mk(UC2)}
+ if(mode=="a"){h=`<p class="note">Halaman 16: angka 1–10. Sino-Korea (일, 이, 삼 …) dipakai untuk nomor, tanggal, uang. Angka asli (하나, 둘, 셋 …) dipakai untuk menghitung benda. Tap sel untuk mendengar; sembunyikan jawaban untuk latihan menulis.</p><p><button id="thid">Sembunyikan jawaban</button> <button id="tall">Tampilkan semua</button></p><div class="tw wt"><table><tr><th>Angka</th><th>Sino-Korea</th><th>Asli Korea</th></tr><tr><th>0</th><td data-s="영"><b>영</b>yeong</td><td data-s="공"><b>공</b>gong</td></tr>${NNA.map((a,i)=>`<tr><th>${i+1}</th><td data-s="${NSI[i+2][0]}"><b>${NSI[i+2][0]}</b>${NSI[i+2][1]}</td><td data-s="${a[0]}"><b>${a[0]}</b>${a[1]}</td></tr>`).join("")}</table></div><div class="lbl">Kartu</div>`+h}
  if(mode=="g")h=`<div class="tw"><table><tr><th>Huruf</th><th>Susunan</th><th>Suku kata</th></tr>${items().map(x=>{const p=x[2].split(" → ");return `<tr><td data-s="${x[0]}"><b>${x[0]}</b> ${x[1]}</td><td data-s="${x[0]}">${p[0]}</td><td data-s="${x[0]}"><b>${(p[1]||"").split(" ")[0]}</b></td></tr>`}).join("")}</table></div><div class="lbl">Kartu</div>`+h;
  $("app").innerHTML=(TRIK[mode]||"")+h;
 }
@@ -232,7 +234,7 @@ function test(){
  if(!Q.length&&!done){
   const HI=items().filter(x=>IMG[x[0]]).length>=4;if(dir==2&&!HI)dir=0;
   const ps=canPick()?`<div class="note" style="margin:0 0 8px">Huruf tes: <b>${SEL[mode].size?SEL[mode].size+" huruf pilihanmu":"semua "+NAMES[mode].toLowerCase()}</b> <button class="hint" id="ptest">Pilih huruf</button></div>`:"";
-  a.innerHTML=ps+`<div class="lbl">Arah soal</div><div class="seg"><button class="${!dir?"on":""}" data-d="0">Huruf → Bacaan</button><button class="${dir==1?"on":""}" data-d="1">Bacaan → Huruf</button><button class="${dir==2?"on":""}" data-d="2" ${HI?"":"disabled"}>[[image]] Gambar → Kata</button></div>${HI?"":`<p class="note">Tes gambar hanya tersedia di materi Ayo Membaca dan Kosakata.</p>`}<p><button class="on" id="go">Mulai tes (10 soal acak)</button> <button id="weak">[[target]] Latih yang sering salah</button>${mirOK()?` <button id="tmir">[[refresh]] Latih huruf yang mirip</button>`:""}</p><p class="note">Tips: tekan [[bulb]] Petunjuk jika lupa. Soal yang salah akan diulang di akhir, dan huruf yang sering salah dicatat otomatis.</p>`;return;
+  a.innerHTML=tg()+ps+`<div class="lbl">Arah soal</div><div class="seg"><button class="${!dir?"on":""}" data-d="0">Huruf → Bacaan</button><button class="${dir==1?"on":""}" data-d="1">Bacaan → Huruf</button><button class="${dir==2?"on":""}" data-d="2" ${HI?"":"disabled"}>[[image]] Gambar → Kata</button></div>${HI?"":`<p class="note">Tes gambar hanya tersedia di materi Kosakata.</p>`}<p><button class="on" id="go">Mulai tes (10 soal acak)</button> <button id="weak">[[target]] Latih yang sering salah</button>${mirOK()?` <button id="tmir">[[refresh]] Latih huruf yang mirip</button>`:""}</p><p class="note">Tips: tekan [[bulb]] Petunjuk jika lupa. Soal yang salah akan diulang di akhir, dan huruf yang sering salah dicatat otomatis.</p>`;return;
  }
  if(done){
   const e=score>=9?"[[trophy]]":score>=6?"[[star]]":"[[target]]";
@@ -246,7 +248,7 @@ function test(){
  a.innerHTML=`<div class="bar"><i style="width:${qi/Q.length*100}%"></i></div><div class="q"><div class="note">Soal ${qi+1} dari ${Q.length} · Skor ${score}${MIR?" · huruf mirip":""}</div>${dir==2?`<img class="qi" src="${IMG[q[0]]}" alt=""><div class="note">Pilih kata Korea yang cocok dengan gambar</div>`:dir?`<div class="big" style="font-size:3rem">${q[1]}</div><div class="note">Pilih huruf yang benar</div>`:`<div class="big" style="${WM()?"font-size:2.6rem":""}">${q[0]}</div><div class="note">Bagaimana cara membacanya?</div><button class="hint" data-s="${q[0]}">[[sound]] Dengar lagi</button>`}<div class="opts">${opts.map(o=>`<button data-a="${o[0]}">${dir?o[0]:o[1]}</button>`).join("")}</div><div class="tip" id="tip"><button class="hint" id="hint">[[bulb]] Petunjuk</button></div></div>`;
 }
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-m],[data-t],[data-s],[data-d],[data-a],[data-f],#go,#again,#next,#hint,#weak,#all,#tv,[data-sa],#sgo,#sn,#si,#sc,#smh,#shint,[data-pk],#pall,#pnone,#prnd3,#prnd5,#pgo,#pchg,#ptest,[data-ka],#kgo,#kn,#kh,#kpick,[data-pg],#sp,#tmu,#trt,#tmir");if(!t)return;
+ const t=e.target.closest("[data-m],[data-t],[data-s],[data-d],[data-a],[data-f],#go,#again,#next,#hint,#weak,#all,#tv,[data-sa],#sgo,#sn,#si,#sc,#smh,#shint,[data-pk],#pall,#pnone,#prnd3,#prnd5,#pgo,#pchg,#ptest,[data-ka],#kgo,#kn,#kh,#kpick,[data-pg],#sp,#tmu,#trt,#tmir,[data-g],[data-tt]");if(!t)return;
  if(t.id=="tmu"){MUTE=!MUTE;if(MUTE)stopAll();svSnd();stat();return}
  if(t.id=="trt"){RI=(RI+1)%3;svSnd();stat();say("ㅏ");return}
  if(t.id=="tmir"){MIR=true;start();return}
@@ -265,7 +267,9 @@ document.addEventListener("click",e=>{
  if(t.id=="pgo"){if(PD=="kata"){PD="card";kHome()}else if(PD=="smart"){PD="card";smartHome()}else if(PD=="test"){PD="card";Q=[];done=false;test()}else{F=sh(picked());fl=false;card()}return}
  if(t.id=="pchg"){F=null;fl=false;PD="card";picker("card");return}
  if(t.id=="ptest"){PD="test";picker("test");return}
- if(t.dataset.m){mode=t.dataset.m;route();return}
+ if(t.dataset.g!==undefined){const g=+t.dataset.g;mode=LASTM[g]||GROUPS[g][1][0];route();return}
+ if(t.dataset.tt!==undefined){TK=+t.dataset.tt;route();return}
+ if(t.dataset.m){mode=t.dataset.m;LASTM[gi(mode)]=mode;route();return}
  if(t.dataset.t){tab=t.dataset.t;route();return}
  if(t.dataset.s){say(t.dataset.s);return}
  if(t.dataset.d){dir=+t.dataset.d;test();return}
@@ -303,6 +307,7 @@ EX.u=[];UC1.concat(UC2).forEach(c=>UV.forEach(v=>{const z=tsy(c[0],v[0]);EX.u.pu
 const NSI=[["영","yeong",0],["공","gong",0],["일","il",1],["이","i",2],["삼","sam",3],["사","sa",4],["오","o",5],["육","yuk",6],["칠","chil",7],["팔","pal",8],["구","gu",9],["십","sip",10]],NNA=[["하나","hana",1],["둘","dul",2],["셋","set",3],["넷","net",4],["다섯","daseot",5],["여섯","yeoseot",6],["일곱","ilgop",7],["여덟","yeodeol",8],["아홉","ahop",9],["열","yeol",10]];
 EX.n=NSI.map(x=>[x[0],x[1],"Angka "+x[2]+" (Sino-Korea)"+(x[2]==0?" · 0 boleh dibaca 영 atau 공":"")]);
 EX.o=NNA.map(x=>[x[0],x[1],"Angka "+x[2]+" (asli Korea)"]);
+EX.t=EX.t.concat(EX.u);EX.a=EX.n.concat(EX.o);
 EX.r=[["ㄱ","k"],["ㅋ","k"],["ㄴ","n"],["ㄷ","t"],["ㅅ","t"],["ㅈ","t"],["ㅊ","t"],["ㅌ","t"],["ㅎ","t"],["ㄹ","l"],["ㅁ","m"],["ㅂ","p"],["ㅍ","p"],["ㅇ","ng"]].map(x=>[x[0],x[1],x[0]+" di akhir suku kata dibaca ["+x[1]+"]. Satu kelompok: "+GR[x[1]]]);
 const TYP=new Set(["v","c","m","s","g","k","b","r"]),IV=[0,2,20,1440,4320,10080];
 let SM=null;
@@ -366,7 +371,7 @@ let F=null,fl=false;
 const TRIK={v:`<div class="trik"><b>Rumus mudah vokal:</b><br>• Garis <b>tegak</b> ㅣ: tanda ke <b>kanan</b> = a (ㅏ), ke <b>kiri</b> = eo (ㅓ).<br>• Garis <b>datar</b> ㅡ: tanda ke <b>atas</b> = o (ㅗ), ke <b>bawah</b> = u (ㅜ).<br>• <b>Dua tanda</b> = ada bunyi “y”: ㅑ ya, ㅕ yeo, ㅛ yo, ㅠ yu.<br>• ㅡ = eu, ㅣ = i. Hafal 4 dasar dulu: ㅏ ㅓ ㅗ ㅜ, lalu tambahkan versi “y”-nya.</div>`,c:`<div class="trik"><b>Kelompok pasangan:</b> ㄱ/ㅋ (g/k) · ㄷ/ㅌ (d/t) · ㅂ/ㅍ (b/p) · ㅈ/ㅊ (j/ch). Huruf dengan garis tambahan = bunyi lebih kuat.</div>`,s:`<div class="trik">Rumus: konsonan + vokal. ㅇ di awal tidak berbunyi: 아 = a, 오 = o.</div>`};
 Object.assign(TRIK,{r:`<div class="trik"><b>Aturan batchim:</b> hanya ada <b>7 bunyi</b> akhir: k (ㄱ ㅋ) · n (ㄴ) · t (ㄷ ㅅ ㅈ ㅊ ㅌ ㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂ ㅍ) · ng (ㅇ). Hafalkan kelompoknya, bukan satu per satu.</div>`,p:`<div class="trik"><b>Ayo membaca!</b> Kata-kata dari halaman 5 PPT beserta gambarnya. Lihat gambar, baca katanya, lalu uji dengan tes “Gambar → Kata”.</div>`,g:`<div class="trik"><b>Vokal gabungan</b> = dua vokal digabung. Kuncinya: <b>ㅣ</b> di belakang → ㅏ+ㅣ=ㅐ, ㅓ+ㅣ=ㅔ. Awalan <b>ㅗ/ㅜ</b> → bunyi “w”: ㅘ wa, ㅝ wo, ㅟ wi.</div>`,k:`<div class="trik"><b>Konsonan ganda</b> = huruf kembar yang diucapkan lebih <b>tegang/ditekan</b>, tanpa hembusan napas: ㄲ ㄸ ㅃ ㅆ ㅉ.</div>`,b:`<div class="trik"><b>Batchim</b> = konsonan akhir. Hanya ada <b>7 bunyi</b>: k (ㄱㅋ) · n (ㄴ) · t (ㄷㅅㅈㅊㅌㅎ) · l (ㄹ) · m (ㅁ) · p (ㅂㅍ) · ng (ㅇ).</div>`,w:`<div class="trik"><b>Kosakata</b> dari buku kelasmu. Latih membaca, lalu tebak artinya. Gunakan soal “Bacaan → Huruf” untuk melatih mengenali tulisan Korea dari artinya.</div>`});
 function wk(k,ok){upd(mode+":"+k,ok);try{const w=JSON.parse(localStorage.getItem("wk")||"{}");w[k]=Math.max(0,(w[k]||0)+(ok?-1:2));localStorage.setItem("wk",JSON.stringify(w))}catch(e){}}
-function route(){stopAll();MIR=false;Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():tab=="kata"?kHome():test()}
+function route(){stopAll();MIR=false;Q=[];done=false;F=null;fl=false;PD="card";head();tab=="smart"?smartHome():tab=="learn"?learn():tab=="card"?card():(TK&&KMODES.includes(mode))?kHome():test()}
 function card(){
  if(!F&&canPick()){picker("card");return}
  if(!F)F=sh(items().slice());
@@ -422,7 +427,9 @@ function kMake(w,t){
   return{h:`<div class="big" style="font-size:2.4rem">${w.rom}</div><div class="note">Arti: ${w.id}. Pilih tulisan Hangul-nya</div>`,o:sh([w,...d]).map(y=>({t:y.ko,ok:y===w}))}}
  return{h:big+`<div class="note">Bagaimana cara membacanya?</div>`,o:sh([w.rom,...variants(w,3)]).map(x=>({t:x,ok:x==w.rom}))}
 }
-function kHome(){
+const tg=()=>KMODES.includes(mode)?`<div class="seg" style="margin-bottom:10px"><button class="${TK?"":"on"}" data-tt="0">Tebak huruf</button><button class="${TK?"on":""}" data-tt="1">Tebak lewat kata</button></div>`:"";
+function kHome(){kHome0();$("app").insertAdjacentHTML("afterbegin",tg())}
+function kHome0(){
  if(!KMODES.includes(mode)){$("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 6px">Soal kata sehari-hari</div><p class="note" style="margin:0">Tersedia untuk semua materi huruf (Vokal sampai Aturan Batchim). Untuk Ayo Membaca dan Kosakata, pakai tab Tes.</p></div>`;return}
  const p=kPoolW(),foc=canPick()&&SEL[mode].size;
  $("app").innerHTML=`<div class="q" style="text-align:left"><div class="lbl" style="margin:0 0 6px">Soal kata sehari-hari · ${NAMES[mode]}</div><p style="margin:0 0 10px">Latih ${lab()} lewat kata yang sering dipakai. Kata dipilih dari huruf yang kamu latih: ${foc?`<b>${[...SEL[mode]].join(" ")}</b>`:"semua "+lab()}.</p><p class="note" style="margin:0 0 12px">Tersedia <b>${p.length}</b> kata. Jenis soal: baca kata, cari huruf di dalam kata, arti kata, dan tebak tulisan dari bacaan. Suara hanya berbunyi setelah kamu menjawab.</p><button class="on" id="kgo" style="width:100%;padding:14px" ${p.length?"":"disabled"}>[[zap]] Mulai (${Math.min(10,p.length)} soal acak)</button>${canPick()?`<button id="kpick" style="width:100%;margin-top:8px;padding:12px">Pilih huruf fokus</button>`:""}</div>`}
@@ -452,8 +459,10 @@ function kEnd(){
 EX.m=[...V.map(x=>[x[0],x[1],x[3]]),...C.map(x=>[x[0],x[1],x[3]]),...EX.g,...EX.k,...EX.b];
 TRIK.x=`<div class="trik"><b>Baca (halaman 24):</b> 20 kata bergambar dengan konsonan ganda (ㄲ ㄸ ㅃ ㅆ ㅉ) dan konsonan tebal (ㅋ ㅌ ㅍ ㅊ). Lihat gambar, baca kata, lalu cek artinya.</div>`;
 TRIK.u=`<div class="trik"><b>Tulis (halaman 23):</b> konsonan ganda ㄲ ㄸ ㅃ ㅆ ㅉ dan ㅋ ㅌ ㅍ ㅊ ㅎ × 10 vokal dasar. Konsonan ganda dibaca lebih tegang, tanpa hembusan napas.</div>`;
+TRIK.a=`<div class="trik"><b>Dua cara menghitung:</b> Sino-Korea (일 이 삼 …) untuk nomor, tanggal, uang · asli Korea (하나 둘 셋 …) untuk menghitung benda. Angka 0 = 영 (= 공).</div>`;
 TRIK.n=`<div class="trik"><b>Angka Sino-Korea:</b> 일 1 · 이 2 · 삼 3 · 사 4 · 오 5 · 육 6 · 칠 7 · 팔 8 · 구 9 · 십 10. Angka 0 = 영 (= 공).</div>`;
 TRIK.o=`<div class="trik"><b>Angka asli Korea:</b> 하나 1 · 둘 2 · 셋 3 · 넷 4 · 다섯 5 · 여섯 6 · 일곱 7 · 여덟 8 · 아홉 9 · 열 10. Dipakai untuk menghitung benda dan umur.</div>`;
+TRIK.t=`<div class="trik"><b>Latihan tulis:</b> ganti ㄱ pada 개, 걔, 게 … dengan tiap konsonan (hal. 21), lalu tulis konsonan ganda dan tebal × vokal dasar (hal. 23). Sembunyikan jawaban, tulis di buku, tap sel untuk mengecek.</div>`;
 TRIK.q=`<div class="trik"><b>Baca (halaman 20):</b> 20 kata bergambar yang memuat vokal gabungan (ㅐ ㅔ ㅖ ㅘ ㅙ ㅚ ㅟ ㅢ). Lihat gambar, baca kata, lalu cek artinya.</div>`;
 TRIK.t=`<div class="trik"><b>Tulis (halaman 21):</b> 11 vokal gabungan × 14 konsonan. Ganti ㄱ pada 개, 걔, 게, 계, 과, 괘, 괴, 궈, 궤, 귀, 긔 dengan ㄴ ㄷ ㄹ … ㅎ. Huruf ㅇ di awal tidak berbunyi.</div>`;
 TRIK.m=`<div class="trik"><b>Campuran:</b> semua huruf dalam satu tempat: <b>vokal, konsonan, vokal gabungan, konsonan ganda,</b> dan <b>batchim</b>. Di Kartu, Tes, dan Pintar kamu bisa memilih huruf dari grup mana saja, lalu soal diacak dari huruf pilihanmu saja.</div>`;
